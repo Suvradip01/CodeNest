@@ -1,63 +1,164 @@
+/* --- Base Reset and Setup --- */
 * {
-  margin: 0%;
-  padding: 0%;
-  box-sizing: border-box;
+    /* Reset default browser margins, paddings, and ensure padding/border are included in element's total width/height */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+/* Ensure root elements take full viewport size */
 html,
 body,
 #root {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
-main {
-  height: 100%;
-  width: 100%;
-  padding: 1.5rem;
-  display: flex;
-  gap: 1rem;
+/* --- Layout Container --- */
+.wrap {
+    min-height: 100%; /* Ensures background covers the whole screen */
+    background: #121417; /* Primary dark background color */
+    color: #e5e7eb; /* Light text color */
 }
 
-main .left,
-main .right {
-  height: 100%;
-  flex-basis: 50%;
-  border-radius: 0.7rem;
+/* --- Top Navigation Bar (.topbar) --- */
+.topbar {
+    display: flex;
+    gap: 0.75rem; /* Space between elements */
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: #1f192b; 
+    border-bottom: 1px solid #1f2329; /* Separator line */
 }
 
-main .left {
-  background-color: #000000;
-  position: relative;
+.brand {
+    font-weight: 700;
+    font-size: 1.25rem;
 }
 
-.left .code,
+.controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+/* Language Selector (Dropdown) */
+.select {
+    background: #1a1d22; /* Dark input background */
+    color: #e5e7eb;
+    border: 1px solid #2a2f36;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+/* Review Button */
+.reviewBtn {
+    background: #22c55e; /* Green primary button color */
+    color: #0b0f13; /* Dark text on button */
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* --- Main Content Area (.main) --- */
+.main {
+    /* Grid layout with two equal columns and dynamic rows */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto; /* Allows rows to size based on content */
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+}
+
+/* --- Panel Styles (Code Editor, Review, etc.) --- */
+.panel {
+    background: #0f1114;
+    border: 1px solid #1f2329;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Allows space for buttons/icons in the header */
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #1f2329;
+    font-weight: 600;
+}
+
+.panelBody {
+    padding: 1rem;
+    height: 420px; /* Fixed height for content area */
+    overflow: auto;
+}
+
+/* --- Code Editor Styles --- */
+.editorWrap {
+    height: 100%;
+}
+
+.code,
 .code pre,
 .code pre code {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  border-radius: 0.7rem;
-  background-color: #0c0c0c;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 0.5rem;
+    background: #0b0f13; /* Deepest dark background for the editor */
 }
 
-main .left .review {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background-color: rgb(219, 219, 255);
-  color: #000000;
-  padding: 0.5rem 2rem;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 0.7rem;
+/* Run Button (Separate from the run bar, likely placed below the editor) */
+.runBtn {
+    background: #863bf6; /* Blue action button */
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
 }
 
+/* --- Terminal Output Style --- */
+.term {
+    background: #24282b;
+    border: 1px solid #1f2329;
+    color: #22c55e; /* Bright green text for output */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+    height: 180px; /* Fixed height for the terminal */
+    overflow: auto;
+}
 
-main .right {
-  background-color: #343434;
-  padding: 1rem 2rem;
-  font-size: 1.5rem;
-  overflow: auto;
+/* --- AI Prompt Bar (Input area) --- */
+.promptBar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid #1f2329; /* Separates prompt from content above */
+}
+
+.prompt {
+    flex: 1; /* Takes up most available space */
+    background: #0b0f13;
+    color: #e5e7eb;
+    border: 1px solid #2a2f36;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+
+/* Apply/Submit AI Prompt Button */
+.applyBtn {
+    background: #f47b02; /* Indigo button color for AI action */
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
 }

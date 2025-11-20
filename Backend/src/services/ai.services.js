@@ -93,3 +93,11 @@ async function generateContent(prompt) {
 }
 
 module.exports = generateContent;
+module.exports.editCode = async function(prompt, code) {
+    const response = await ai.models.generateContent({
+        model: MODEL_ID,
+        systemInstruction: "You are an expert code editor. Update the provided code according to the prompt. Return only the complete updated code.",
+        contents: `${prompt}\n\n${code}`
+    });
+    return response.text;
+}
