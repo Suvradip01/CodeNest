@@ -16,26 +16,23 @@ body,
 
 /* --- Layout Container --- */
 .wrap {
-    min-height: 100%;
-    /* Ensures background covers the whole screen */
+    min-height: 100vh;
     background: #121417;
-    /* Primary dark background color */
     color: #e5e7eb;
-    /* Light text color */
 }
 
 /* --- Top Navigation Bar (.topbar) --- */
 .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     display: flex;
     gap: 0.75rem;
-    /* Space between elements */
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.25rem;
     background: #1f192b;
-    /* Custom dark purple background for the top bar */
     border-bottom: 1px solid #1f2329;
-    /* Separator line */
 }
 
 .brand {
@@ -75,12 +72,12 @@ body,
 
 /* --- Main Content Area (.main) --- */
 .main {
-    /* Grid layout: two equal columns, two dynamic rows (for code/review and terminal/prompt) */
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
+    grid-template-rows: 2fr 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    height: calc(100vh - 56px);
 }
 
 /* --- Panel Styles (Base for all content containers) --- */
@@ -89,31 +86,32 @@ body,
     border: 1px solid #1f2329;
     border-radius: 0.75rem;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .panelHeader {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.9rem;
     border-bottom: 1px solid #1f2329;
     font-weight: 600;
+    flex: 0 0 auto;
 }
 
 /* Standard Panel Body Height (e.g., Code Editor, Main Review) */
 .panelBody {
-    padding: 1rem;
-    height: 420px;
-    /* Fixed height for primary content area */
+    padding: 0.75rem;
     overflow: auto;
+    flex: 1 1 auto;
 }
 
 /* Smaller Panel Body Height (e.g., dedicated AI Panel) */
 .panelBodySm {
-    padding: 1rem;
-    height: 220px;
-    /* Smaller fixed height for secondary content */
+    padding: 0.75rem;
     overflow: auto;
+    min-height: 140px;
 }
 
 /* --- Code Editor & Review Content Styling --- */
@@ -160,8 +158,7 @@ body,
 
 /* Run Button (placed below the editor) */
 .runBtn {
-    background: #863bf6;
-    /* Custom purple action button */
+    background: #22c55e;
     color: #fff;
     border: none;
     border-radius: 0.5rem;
@@ -173,16 +170,13 @@ body,
 /* --- Terminal Output Style --- */
 .term {
     background: #24282b;
-    /* Slightly lighter dark background for contrast */
     border: 1px solid #1f2329;
     color: #22c55e;
-    /* Bright green text for output */
     border-radius: 0.5rem;
-    padding: 1rem;
+    padding: 0.75rem;
     font-family: monospace;
     white-space: pre-wrap;
-    height: 180px;
-    /* Fixed height for the terminal */
+    height: 140px;
     overflow: auto;
 }
 
