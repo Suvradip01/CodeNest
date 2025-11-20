@@ -16,20 +16,26 @@ body,
 
 /* --- Layout Container --- */
 .wrap {
-    min-height: 100%; /* Ensures background covers the whole screen */
-    background: #121417; /* Primary dark background color */
-    color: #e5e7eb; /* Light text color */
+    min-height: 100%;
+    /* Ensures background covers the whole screen */
+    background: #121417;
+    /* Primary dark background color */
+    color: #e5e7eb;
+    /* Light text color */
 }
 
 /* --- Top Navigation Bar (.topbar) --- */
 .topbar {
     display: flex;
-    gap: 0.75rem; /* Space between elements */
+    gap: 0.75rem;
+    /* Space between elements */
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.5rem;
-    background: #1f192b; 
-    border-bottom: 1px solid #1f2329; /* Separator line */
+    background: #1f192b;
+    /* Custom dark purple background for the top bar */
+    border-bottom: 1px solid #1f2329;
+    /* Separator line */
 }
 
 .brand {
@@ -45,7 +51,9 @@ body,
 
 /* Language Selector (Dropdown) */
 .select {
-    background: #1a1d22; /* Dark input background */
+    background: #1a1d22;
+    height: auto;
+    /* Dark input background */
     color: #e5e7eb;
     border: 1px solid #2a2f36;
     border-radius: 0.5rem;
@@ -54,8 +62,10 @@ body,
 
 /* Review Button */
 .reviewBtn {
-    background: #22c55e; /* Green primary button color */
-    color: #0b0f13; /* Dark text on button */
+    background: #22c55e;
+    /* Green primary button color */
+    color: #0b0f13;
+    /* Dark text on button */
     border: none;
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
@@ -65,15 +75,15 @@ body,
 
 /* --- Main Content Area (.main) --- */
 .main {
-    /* Grid layout with two equal columns and dynamic rows */
+    /* Grid layout: two equal columns, two dynamic rows (for code/review and terminal/prompt) */
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto; /* Allows rows to size based on content */
+    grid-template-rows: auto auto;
     gap: 1rem;
     padding: 1rem 1.5rem;
 }
 
-/* --- Panel Styles (Code Editor, Review, etc.) --- */
+/* --- Panel Styles (Base for all content containers) --- */
 .panel {
     background: #0f1114;
     border: 1px solid #1f2329;
@@ -84,23 +94,34 @@ body,
 .panelHeader {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Allows space for buttons/icons in the header */
+    justify-content: space-between;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #1f2329;
     font-weight: 600;
 }
 
+/* Standard Panel Body Height (e.g., Code Editor, Main Review) */
 .panelBody {
     padding: 1rem;
-    height: 420px; /* Fixed height for content area */
+    height: 420px;
+    /* Fixed height for primary content area */
     overflow: auto;
 }
 
-/* --- Code Editor Styles --- */
+/* Smaller Panel Body Height (e.g., dedicated AI Panel) */
+.panelBodySm {
+    padding: 1rem;
+    height: 220px;
+    /* Smaller fixed height for secondary content */
+    overflow: auto;
+}
+
+/* --- Code Editor & Review Content Styling --- */
 .editorWrap {
     height: 100%;
 }
 
+/* Code Editor container, pre, and code elements */
 .code,
 .code pre,
 .code pre code {
@@ -108,12 +129,39 @@ body,
     width: 100%;
     margin: 0;
     border-radius: 0.5rem;
-    background: #0b0f13; /* Deepest dark background for the editor */
+    background: #0b0f13;
+    /* Deepest dark background for the editor */
 }
 
-/* Run Button (Separate from the run bar, likely placed below the editor) */
+/* Review content text styling */
+.reviewContent {
+    line-height: 1.6;
+}
+
+.reviewContent h2 {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+.reviewContent ul {
+    margin: 0.25rem 0 0.75rem 1rem;
+}
+
+/* Inline code and code blocks within the review panel */
+.reviewContent code,
+.reviewContent pre {
+    background: #0b0f13;
+    border: 1px solid #1f2329;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    display: block;
+    /* Make pre/code blocks span full width */
+}
+
+/* Run Button (placed below the editor) */
 .runBtn {
-    background: #863bf6; /* Blue action button */
+    background: #863bf6;
+    /* Custom purple action button */
     color: #fff;
     border: none;
     border-radius: 0.5rem;
@@ -125,13 +173,16 @@ body,
 /* --- Terminal Output Style --- */
 .term {
     background: #24282b;
+    /* Slightly lighter dark background for contrast */
     border: 1px solid #1f2329;
-    color: #22c55e; /* Bright green text for output */
+    color: #22c55e;
+    /* Bright green text for output */
     border-radius: 0.5rem;
     padding: 1rem;
     font-family: monospace;
     white-space: pre-wrap;
-    height: 180px; /* Fixed height for the terminal */
+    height: 180px;
+    /* Fixed height for the terminal */
     overflow: auto;
 }
 
@@ -140,11 +191,12 @@ body,
     display: flex;
     gap: 0.5rem;
     padding: 1rem;
-    border-top: 1px solid #1f2329; /* Separates prompt from content above */
+    border-top: 1px solid #1f2329;
 }
 
 .prompt {
-    flex: 1; /* Takes up most available space */
+    flex: 1;
+    /* Takes up most available space */
     background: #0b0f13;
     color: #e5e7eb;
     border: 1px solid #2a2f36;
@@ -154,7 +206,8 @@ body,
 
 /* Apply/Submit AI Prompt Button */
 .applyBtn {
-    background: #f47b02; /* Indigo button color for AI action */
+    background: #f47b02;
+    /* Orange button color for AI action */
     color: #fff;
     border: none;
     border-radius: 0.5rem;

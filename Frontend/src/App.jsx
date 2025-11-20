@@ -40,9 +40,16 @@ function App() {
     setOutput(res.data.output || [])
   }
 
+  function extractCode(text){
+    const fence = text.match(/```[a-zA-Z0-9]*\n([\s\S]*?)```/)
+    if (fence && fence[1]) return fence[1].trim()
+    return text
+  }
+
   async function applyPrompt() {
     const res = await axios.post('http://localhost:3000/ai/edit-code', { prompt, code })
-    setCode(res.data)
+    const updated = typeof res.data === 'string' ? res.data : (res.data.text || '')
+    setCode(extractCode(updated))
   }
 
   return (
@@ -73,7 +80,8 @@ function App() {
                   fontFamily: '"Fira code", "Fira Mono", monospace',
                   fontSize: 16,
                   height: '100%',
-                  width: '100%'
+                  width: '100%',
+                  overflow: 'auto'
                 }}
               />
             </div>
@@ -82,12 +90,14 @@ function App() {
         <div className="panel">
           <div className="panelHeader">Code Review</div>
           <div className="panelBody">
-            <Markdown rehypePlugins={[rehypeHighlight]}>{review}</Markdown>
+            <div className="reviewContent">
+              <Markdown rehypePlugins={[rehypeHighlight]}>{review}</Markdown>
+            </div>
           </div>
         </div>
         <div className="panel">
           <div className="panelHeader">Terminal Output</div>
-          <div className="panelBody">
+          <div className="panelBody panelBodySm">
             <div className="term">
               {output.map((line, i) => (<div key={i}>{line}</div>))}
             </div>
@@ -95,7 +105,7 @@ function App() {
         </div>
         <div className="panel">
           <div className="panelHeader">Edit Prompt</div>
-          <div className="panelBody">
+          <div className="panelBody panelBodySm">
             <div className="promptBar">
               <input className="prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="e.g. Explain this code or suggest improvements..." />
               <button className="applyBtn" onClick={applyPrompt}>Apply</button>
