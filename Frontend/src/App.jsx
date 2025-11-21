@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import "prismjs/themes/prism-tomorrow.css"
 import Editor from "react-simple-code-editor"
 import prism from "prismjs"
@@ -7,6 +7,7 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import axios from 'axios'
 import './App.css'
+import useDarkMode from 'use-dark-mode'
 
 function App() {
   const SNIPPETS = {
@@ -19,16 +20,12 @@ function App() {
   const [code, setCode] = useState(SNIPPETS.javascript)
   const [review, setReview] = useState('')
   const [output, setOutput] = useState([])
-  const [prompt, setPrompt] = useState('Improve and optimize this code')
+  const [prompt, setPrompt] = useState('')
+  const darkMode = useDarkMode(true, { className: 'dark', element: typeof document !== 'undefined' ? document.documentElement : undefined, onChange: (isDark) => { if (typeof document !== 'undefined') { document.documentElement.classList.toggle('light', !isDark) } } })
 
-  useEffect(() => {
-    prism.highlightAll()
-  }, [])
+  
 
-  useEffect(() => {
-    setCode(SNIPPETS[language])
-    setOutput([])
-  }, [language])
+  
 
   async function reviewCode() {
     const response = await axios.post('http://localhost:3000/ai/get-review', { code })
@@ -57,12 +54,20 @@ function App() {
       <div className="topbar">
         <div className="brand">CodeNest</div>
         <div className="controls">
-          <select className="select" value={language} onChange={e => setLanguage(e.target.value)}>
+          <select className="select" value={language} onChange={e => { const lang = e.target.value; setLanguage(lang); setCode(SNIPPETS[lang]); setOutput([]); }}>
             <option>javascript</option>
             <option>python</option>
             <option>java</option>
             <option>c</option>
           </select>
+          <button
+            className="themeToggleBtn"
+            onClick={darkMode.toggle}
+            aria-label="Toggle theme"
+            aria-pressed={darkMode.value}
+          >
+            {darkMode.value ? 'Dark Mode' : 'Light Mode'}
+          </button>
           <button className="reviewBtn" onClick={reviewCode}>Review</button>
         </div>
       </div>

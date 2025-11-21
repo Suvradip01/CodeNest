@@ -119,17 +119,7 @@ body,
     height: 100%;
 }
 
-/* Code Editor container, pre, and code elements */
-.code,
-.code pre,
-.code pre code {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    border-radius: 0.5rem;
-    background: #0b0f13;
-    /* Deepest dark background for the editor */
-}
+/* Code block styling is handled within reviewContent; editor uses its own container */
 
 /* Review content text styling */
 .reviewContent {
@@ -185,7 +175,6 @@ body,
     display: flex;
     gap: 0.5rem;
     padding: 1rem;
-    border-top: 1px solid #1f2329;
 }
 
 .prompt {
@@ -208,4 +197,112 @@ body,
     padding: 0.5rem 1rem;
     font-weight: 600;
     cursor: pointer;
+}
+
+.editorWrap .npm__react-simple-code-editor__textarea,
+.editorWrap .npm__react-simple-code-editor__textarea:focus,
+.editorWrap .npm__react-simple-code-editor__textarea:focus-visible {
+    outline: none;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+.light .editorWrap { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
+.light .editorWrap pre, .light .editorWrap code { color: #111827; }
+.light .token.comment { color: #6b7280; }
+.light .token.keyword { color: #0ea5e9; }
+.light .token.function { color: #ea580c; }
+.light .token.string { color: #16a34a; }
+.light .token.number { color: #b91c1c; }
+.light .token.operator { color: #374151; }
+.light .token.punctuation { color: #4b5563; }
+
+/* Theme toggle text button */
+.themeToggleBtn {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    background: transparent;
+    color: #e5e7eb;
+    border: 1px solid #2a2f36;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Theme toggle text button */
+.themeToggleBtn {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    background: transparent;
+    color: #e5e7eb;
+    border: 1px solid #2a2f36;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Light overrides when html has .light */
+.light .wrap {
+    background: #f6f8fa;
+    color: #111827;
+}
+
+.light .topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.light .select {
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+}
+
+.light .themeToggleBtn {
+    color: #111827;
+    border-color: #d1d5db;
+    background: #ffffff;
+}
+
+.light .themeToggleBtn {
+    color: #111827;
+    border-color: #d1d5db;
+    background: #ffffff;
+}
+
+.light .panel {
+    background: #ffffff;
+    border: 1px solid #201f22;
+}
+
+.light .panelHeader {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.light .panelBody,
+.light .panelBodySm {
+    background: #ffffff;
+}
+
+.light .reviewContent pre {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.light .prompt {
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+}
+
+.light .term {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #000000;
 }
