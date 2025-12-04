@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import "prismjs/themes/prism-tomorrow.css"
-import Editor from "react-simple-code-editor"
-import prism from "prismjs"
-import Markdown from "react-markdown"
-import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
-import axios from 'axios'
 import './App.css'
 import useDarkMode from 'use-dark-mode'
+import Topbar from './components/Topbar'
+import EditorPanel from './components/EditorPanel'
+import ReviewPanel from './components/ReviewPanel'
+import TerminalPanel from './components/TerminalPanel'
+import PromptPanel from './components/PromptPanel'
+import { getReview, runCode as runCodeApi, editCode } from './services/api'
 
 function App() {
   const SNIPPETS = {
@@ -21,102 +22,50 @@ function App() {
   const [review, setReview] = useState('')
   const [output, setOutput] = useState([])
   const [prompt, setPrompt] = useState('')
+
   const darkMode = useDarkMode(true, { className: 'dark', element: typeof document !== 'undefined' ? document.documentElement : undefined, onChange: (isDark) => { if (typeof document !== 'undefined') { document.documentElement.classList.toggle('light', !isDark) } } })
 
-  
 
-  
+
+
 
   async function reviewCode() {
-    const response = await axios.post('http://localhost:3000/ai/get-review', { code })
-    setReview(response.data)
+    const data = await getReview(code)
+    setReview(data)
   }
 
   async function runCode() {
-    const res = await axios.post('http://localhost:3000/code/run', { code, language })
-    setOutput(res.data.output || [])
+    const res = await runCodeApi(code, language)
+    setOutput(res.output || [])
   }
 
-  function extractCode(text){
+  function extractCode(text) {
     const fence = text.match(/```[a-zA-Z0-9]*\n([\s\S]*?)```/)
     if (fence && fence[1]) return fence[1].trim()
     return text
   }
 
   async function applyPrompt() {
-    const res = await axios.post('http://localhost:3000/ai/edit-code', { prompt, code })
-    const updated = typeof res.data === 'string' ? res.data : (res.data.text || '')
+    const res = await editCode(prompt, code)
+    const updated = typeof res === 'string' ? res : (res.text || '')
     setCode(extractCode(updated))
   }
 
   return (
     <div className="wrap">
-      <div className="topbar">
-        <div className="brand">CodeNest</div>
-        <div className="controls">
-          <select className="select" value={language} onChange={e => { const lang = e.target.value; setLanguage(lang); setCode(SNIPPETS[lang]); setOutput([]); }}>
-            <option>javascript</option>
-            <option>python</option>
-            <option>java</option>
-            <option>c</option>
-          </select>
-          <button
-            className="themeToggleBtn"
-            onClick={darkMode.toggle}
-            aria-label="Toggle theme"
-            aria-pressed={darkMode.value}
-          >
-            {darkMode.value ? 'Dark Mode' : 'Light Mode'}
-          </button>
-          <button className="reviewBtn" onClick={reviewCode}>Review</button>
-        </div>
-      </div>
+      <Topbar
+        brand="CodeNest"
+        language={language}
+        onLanguageChange={(lang, snippets) => { setLanguage(lang); setCode(snippets[lang]); setOutput([]); }}
+        darkMode={darkMode}
+        onReview={reviewCode}
+        snippets={SNIPPETS}
+      />
       <div className="main">
-        <div className="panel">
-          <div className="panelHeader">Editor <button className="runBtn" onClick={runCode}>Run Code</button></div>
-          <div className="panelBody">
-            <div className="editorWrap">
-              <Editor
-                value={code}
-                onValueChange={v => setCode(v)}
-                highlight={v => prism.highlight(v, prism.languages.javascript, 'javascript')}
-                padding={12}
-                style={{
-                  fontFamily: '"Fira code", "Fira Mono", monospace',
-                  fontSize: 16,
-                  height: '100%',
-                  width: '100%',
-                  overflow: 'auto'
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="panel">
-          <div className="panelHeader">Code Review</div>
-          <div className="panelBody">
-            <div className="reviewContent">
-              <Markdown rehypePlugins={[rehypeHighlight]}>{review}</Markdown>
-            </div>
-          </div>
-        </div>
-        <div className="panel">
-          <div className="panelHeader">Terminal Output</div>
-          <div className="panelBody panelBodySm">
-            <div className="term">
-              {output.map((line, i) => (<div key={i}>{line}</div>))}
-            </div>
-          </div>
-        </div>
-        <div className="panel">
-          <div className="panelHeader">Edit Prompt</div>
-          <div className="panelBody panelBodySm">
-            <div className="promptBar">
-              <input className="prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="e.g. Explain this code or suggest improvements..." />
-              <button className="applyBtn" onClick={applyPrompt}>Apply</button>
-            </div>
-          </div>
-        </div>
+        <EditorPanel code={code} setCode={setCode} onRun={runCode} />
+        <ReviewPanel review={review} />
+        <TerminalPanel output={output} />
+        <PromptPanel prompt={prompt} setPrompt={setPrompt} onApply={applyPrompt} />
       </div>
     </div>
   )

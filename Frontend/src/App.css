@@ -207,15 +207,45 @@ body,
     box-shadow: none;
     background: transparent;
 }
-.light .editorWrap { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.5rem; }
-.light .editorWrap pre, .light .editorWrap code { color: #111827; }
-.light .token.comment { color: #6b7280; }
-.light .token.keyword { color: #0ea5e9; }
-.light .token.function { color: #ea580c; }
-.light .token.string { color: #16a34a; }
-.light .token.number { color: #b91c1c; }
-.light .token.operator { color: #374151; }
-.light .token.punctuation { color: #4b5563; }
+
+.light .editorWrap {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+}
+
+.light .editorWrap pre,
+.light .editorWrap code {
+    color: #111827;
+}
+
+.light .token.comment {
+    color: #6b7280;
+}
+
+.light .token.keyword {
+    color: #0ea5e9;
+}
+
+.light .token.function {
+    color: #ea580c;
+}
+
+.light .token.string {
+    color: #16a34a;
+}
+
+.light .token.number {
+    color: #b91c1c;
+}
+
+.light .token.operator {
+    color: #374151;
+}
+
+.light .token.punctuation {
+    color: #4b5563;
+}
 
 /* Theme toggle text button */
 .themeToggleBtn {
