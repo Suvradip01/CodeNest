@@ -305,9 +305,21 @@ body,
     background: #ffffff;
 }
 
+.light .reviewContent code,
 .light .reviewContent pre {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+.light .reviewContent .hljs {
+    background: #f8fafc;
+    color: #111827;
+}
+
+.light .reviewContent .hljs-comment,
+.light .reviewContent .hljs-quote {
+    color: #6b7280;
 }
 
 .light .prompt {

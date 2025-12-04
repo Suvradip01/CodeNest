@@ -1,5 +1,11 @@
 import React from 'react'
 
+// PromptPanel: input and action to apply natural-language edits to code
+// Props:
+// - prompt: current prompt text
+// - setPrompt: state setter for prompt
+// - onApply: click handler to send prompt + code to backend
+
 export default function PromptPanel({ prompt, setPrompt, onApply }) {
   return (
     <div className="panel">
@@ -18,4 +24,3 @@ export default function PromptPanel({ prompt, setPrompt, onApply }) {
     </div>
   )
 }
-

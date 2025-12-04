@@ -1,5 +1,9 @@
 import React from 'react'
 
+// TerminalPanel: displays execution output lines similar to a terminal
+// Props:
+// - output: array of strings representing stdout/stderr lines
+
 export default function TerminalPanel({ output }) {
   return (
     <div className="panel">
@@ -12,4 +16,3 @@ export default function TerminalPanel({ output }) {
     </div>
   )
 }
-
