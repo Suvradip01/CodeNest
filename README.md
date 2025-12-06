@@ -8,7 +8,6 @@
   <p>
     <img src="https://img.shields.io/badge/React-19-blue?logo=react" alt="React" />
     <img src="https://img.shields.io/badge/Vite-7-purple?logo=vite" alt="Vite" />
-    <img src="https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss" alt="Tailwind" />
     <img src="https://img.shields.io/badge/Node.js-Express-green?logo=nodedotjs" alt="Node.js" />
     <img src="https://img.shields.io/badge/AI-Gemini%202.5-orange?logo=google" alt="Google Gemini" />
   </p>
@@ -35,7 +34,7 @@ Whether you're learning a new language, debugging a script, or just experimentin
 
 ### Frontend
 - **Framework**: React 19 + Vite 7
-- **Styling**: Tailwind CSS 4
+- **Styling**: Vanilla CSS (Custom properties & CSS Grid)
 - **Editor**: `react-simple-code-editor` + `prismjs`
 - **Markdown**: `react-markdown` + `rehype-highlight`
 - **State/Theme**: `use-dark-mode`
