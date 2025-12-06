@@ -113,7 +113,3 @@ npm run dev
 ## 🤝 Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request for any features, bug fixes, or improvements.
-
-## 📄 License
-
-This project is licensed under the ISC License.
