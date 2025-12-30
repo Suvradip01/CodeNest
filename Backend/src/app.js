@@ -18,59 +18,50 @@ app.get('/', (req, res) => { res.send('Hello World') })
 app.post('/ai/get-review', aiRoutes.getReview)
 app.post('/ai/edit-code', aiRoutes.editCode)
 
-// Simple code runner for multiple languages (not sandboxed; for local dev only)
-const { exec } = require('node:child_process')
-const fs = require('node:fs')
-const path = require('node:path')
-const os = require('node:os')
-
-app.post('/code/run', (req, res) => {
+app.post('/code/run', async (req, res) => {
     const code = req.body.code
     const lang = String(req.body.language || 'javascript').toLowerCase()
+
     if (!code) return res.status(400).send('Code is required')
 
-    // Create temp working directory per request
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cn-'))
+    // Map frontend language names to Piston API identifiers and file names
+    const LANGUAGE_MAP = {
+        'javascript': { language: 'js', version: '18.15.0', filename: 'index.js' },
+        'python': { language: 'python', version: '3.10.0', filename: 'script.py' },
+        'java': { language: 'java', version: '15.0.2', filename: 'Main.java' },
+        'c': { language: 'c', version: '10.2.0', filename: 'main.c' }
+    }
 
-    // Helper: run a shell command within the temp directory
-    const run = (cmd) => {
-        exec(cmd, { cwd: tmp, timeout: 5000, maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
-            const out = stdout.toString()
-            const errOut = stderr.toString()
-            // Cleanup temp directory
-            fs.rmSync(tmp, { recursive: true, force: true })
-            if (err) return res.json({ output: out ? out.split(/\r?\n/) : [], error: errOut || String(err) })
-            res.json({ output: out.split(/\r?\n/) })
+    const target = LANGUAGE_MAP[lang] || LANGUAGE_MAP.javascript
+
+    try {
+        const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                language: target.language,
+                version: target.version,
+                files: [{ name: target.filename, content: code }]
+            })
         })
-    }
 
-    // Language-specific compilation/execution
-    if (lang === 'javascript') {
-        const file = path.join(tmp, 'main.js')
-        fs.writeFileSync(file, code)
-        run(`node "${file}"`)
-        return
-    }
-    if (lang === 'python') {
-        const file = path.join(tmp, 'main.py')
-        fs.writeFileSync(file, code)
-        run(`python "${file}"`)
-        return
-    }
-    if (lang === 'java') {
-        const file = path.join(tmp, 'Main.java')
-        fs.writeFileSync(file, code)
-        run(`javac Main.java && java Main`)
-        return
-    }
-    if (lang === 'c') {
-        const file = path.join(tmp, 'main.c')
-        fs.writeFileSync(file, code)
-        run(`gcc main.c -o main.exe && main.exe`)
-        return
-    }
+        const data = await response.json()
 
-    res.status(400).send('Unsupported language')
+        if (data.run) {
+            const output = []
+            if (data.run.stdout) output.push(...data.run.stdout.split(/\r?\n/))
+            if (data.run.stderr) output.push(...data.run.stderr.split(/\r?\n/))
+            if (output.length === 0 && data.run.code !== 0) {
+                output.push(`Process exited with code ${data.run.code}`)
+            }
+            res.json({ output: output.filter(line => line.length > 0) })
+        } else {
+            res.status(500).json({ error: 'Failed to execute code' })
+        }
+    } catch (error) {
+        console.error('Execution Error:', error)
+        res.status(500).json({ error: 'Internal server error during execution' })
+    }
 })
 
 module.exports = app

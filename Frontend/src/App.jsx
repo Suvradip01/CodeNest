@@ -1,11 +1,11 @@
 // Core UI and styling imports
 import { useState } from 'react'
-import "prismjs/themes/prism-tomorrow.css" // Prism theme used by the editor
-import "highlight.js/styles/github-dark.css" // Highlight.js theme for markdown code blocks
-import './App.css' // App-wide styles, including dark/light overrides
+// import "prismjs/themes/prism-tomorrow.css" // Removed in favor of index.css adaptive themes
+// import "highlight.js/styles/github-dark.css" // Removed to prevent forced dark mode in light theme
+// import './App.css' // App-wide styles removed
 
 // Theme management
-import useDarkMode from 'use-dark-mode'
+import { ThemeProvider, useTheme } from './components/theme-provider'
 
 // Modular UI components
 import Topbar from './components/Topbar'
@@ -54,16 +54,7 @@ int main() {
   const [prompt, setPrompt] = useState('')
 
   // Theme hook: adds 'dark' class to <html> by default and toggles complementary 'light' class
-  const darkMode = useDarkMode(true, {
-    className: 'dark',
-    element: typeof document !== 'undefined' ? document.documentElement : undefined,
-    onChange: (isDark) => {
-      if (typeof document !== 'undefined') {
-        // When dark is OFF, add 'light' class for CSS overrides across the UI
-        document.documentElement.classList.toggle('light', !isDark)
-      }
-    }
-  })
+  const { theme, setTheme } = useTheme()
 
   // Request an AI review of the current editor code and render markdown
   async function reviewCode() {
@@ -93,18 +84,17 @@ int main() {
 
   return (
     // App shell with topbar and main panel grid
-    <div className="wrap">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20">
       {/* Top navigation: brand, language selector, theme toggle, review action */}
       <Topbar
         brand="CodeNest"
         language={language}
         onLanguageChange={(lang, snippets) => { setLanguage(lang); setCode(snippets[lang]); setOutput([]); }}
-        darkMode={darkMode}
         onReview={reviewCode}
         snippets={SNIPPETS}
       />
       {/* Main content: editor, AI review, terminal output, and prompt entry */}
-      <div className="main">
+      <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-[2fr_1fr] gap-4 p-4 lg:p-6 h-[calc(100vh-65px)] overflow-hidden">
         <EditorPanel code={code} setCode={setCode} onRun={runCode} language={language} />
         <ReviewPanel review={review} />
         <TerminalPanel output={output} />

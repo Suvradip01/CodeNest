@@ -6,11 +6,37 @@ import React from 'react'
 
 export default function TerminalPanel({ output }) {
   return (
-    <div className="panel">
-      <div className="panelHeader">Terminal Output</div>
-      <div className="panelBody panelBodySm">
-        <div className="term">
-          {output.map((line, i) => (<div key={i}>{line}</div>))}
+    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-lg dark:shadow-2xl transition-all hover:shadow-emerald-500/10 dark:hover:shadow-emerald-900/10 group">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 backdrop-blur-md">
+        <span className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse"></span>
+          Terminal
+        </span>
+        <div className="flex gap-2">
+          <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-glow-1"></div>
+          <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-[0_0_8px_rgba(234,179,8,0.6)] animate-glow-2"></div>
+          <div className="w-3 h-3 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-glow-3"></div>
+        </div>
+      </div>
+      <div className="p-0 overflow-auto flex-1 bg-background dark:bg-black relative">
+        <div className="font-mono text-sm p-4 space-y-1.5 min-h-full">
+          {output.length === 0 ? (
+            <div className="flex items-center gap-2 text-muted-foreground/40 italic animate-pulse p-2">
+              <span className="text-emerald-600/50 dark:text-emerald-500/50">➜</span>
+              Waiting for command execution...
+            </div>
+          ) : (
+            output.map((line, i) => (
+              <div
+                key={i}
+                className="group/line flex items-start gap-3 text-emerald-800 dark:text-emerald-300/90 hover:bg-black/5 dark:hover:bg-white/5 rounded px-2 py-0.5 transition-colors animate-slide-up"
+                style={{ animationDelay: `${i * 0.05}s` }}
+              >
+                <span className="opacity-40 select-none mt-0.5 text-xs text-emerald-600 dark:text-emerald-500 shrink-0">$</span>
+                <span className="break-all leading-relaxed tracking-wide">{line}</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
