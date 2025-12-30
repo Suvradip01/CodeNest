@@ -30,7 +30,7 @@ export default function PromptPanel({ prompt, setPrompt, onApply }) {
   }
 
   return (
-    <div className="bg-card/60 backdrop-blur-md border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-lg dark:shadow-2xl transition-all group">
+    <div className="bg-white/60 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col h-full shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] group relative">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
         <span className="font-semibold text-sm tracking-wide text-foreground/90 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 animate-pulse" />

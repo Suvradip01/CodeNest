@@ -1,8 +1,6 @@
 // Core UI and styling imports
 import { useState } from 'react'
-// import "prismjs/themes/prism-tomorrow.css" // Removed in favor of index.css adaptive themes
-// import "highlight.js/styles/github-dark.css" // Removed to prevent forced dark mode in light theme
-// import './App.css' // App-wide styles removed
+
 
 // Theme management
 import { ThemeProvider, useTheme } from './components/theme-provider'
@@ -84,7 +82,9 @@ int main() {
 
   return (
     // App shell with topbar and main panel grid
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/20">
+    // App shell with floating glass panels and gradient background
+    // App shell with floating glass panels and smooth gradient background
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black text-foreground flex flex-col font-sans selection:bg-primary/20">
       {/* Top navigation: brand, language selector, theme toggle, review action */}
       <Topbar
         brand="CodeNest"

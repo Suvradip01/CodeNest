@@ -6,7 +6,7 @@ import React from 'react'
 
 export default function TerminalPanel({ output }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col h-full shadow-lg dark:shadow-2xl transition-all hover:shadow-emerald-500/10 dark:hover:shadow-emerald-900/10 group">
+    <div className="bg-white/60 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col h-full shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] group relative">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 backdrop-blur-md">
         <span className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse"></span>
