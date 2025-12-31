@@ -73,8 +73,7 @@ Whether you're learning a new language, debugging a script, or just experimentin
   - eslint-plugin-react-hooks 7.0.1 - React Hooks linting rules
   - eslint-plugin-react-refresh 0.4.24 - React Refresh linting
   - globals 16.5.0 - Global variables for different environments
-  - @types/react 19.2.5 - TypeScript type definitions for React
-  - @types/react-dom 19.2.3 - TypeScript type definitions for React DOM
+
 
 ### Backend
 - **Runtime & Server**
@@ -112,6 +111,7 @@ Whether you're learning a new language, debugging a script, or just experimentin
 - **Version Control**: Git (.gitignore configured)
 - **Package Managers**: npm (package-lock.json)
 - **Module Systems**: ESM (Frontend), CommonJS (Backend)
+- **Languages**: Pure JavaScript/JSX (No TypeScript)
 - **Environment**: Development server on localhost (Backend: 3000, Frontend: 5173)
 
 ## ⚙️ Prerequisites
