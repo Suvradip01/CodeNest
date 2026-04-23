@@ -172,9 +172,12 @@ export default function AuthDialog({
                     Full Name
                   </span>
                   <input
+                    id="auth-name"
+                    name="name"
                     value={form.name}
                     onChange={handleChange('name')}
                     placeholder="Enter your name"
+                    autoComplete="name"
                     className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
                     required={isRegister}
                   />
@@ -188,10 +191,13 @@ export default function AuthDialog({
                 Email Address
               </span>
               <input
+                id="auth-email"
+                name="email"
                 type="email"
                 value={form.email}
                 onChange={handleChange('email')}
                 placeholder="you@example.com"
+                autoComplete="email"
                 className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
                 required
               />
@@ -203,10 +209,13 @@ export default function AuthDialog({
                 Secure Password
               </span>
               <input
+                id="auth-password"
+                name="password"
                 type="password"
                 value={form.password}
                 onChange={handleChange('password')}
                 placeholder="••••••••"
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
                 className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
                 required
               />
