@@ -10,11 +10,15 @@ module.exports.getReview = async (req, res) => {
         res.send(response)
     } catch (error) {
         console.error("Error in getReview:", error);
-        const isRateLimit = error.status === 429 || error.code === 429 || (error.message && error.message.includes('429'));
-        if (isRateLimit) {
-            return res.status(429).json({ error: "Service currently overloaded. Please try again in a few moments." });
+        const status = error?.status || error?.code || error?.error?.code
+        const msg = String(error?.message || "")
+        if (status === 429 || msg.includes("429")) {
+            return res.status(429).json({ error: "AI rate-limited. Please try again shortly." });
         }
-        res.status(500).send("Internal Server Error")
+        if (status === 503 || msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("high demand")) {
+            return res.status(503).json({ error: "AI temporarily unavailable. Please try again shortly." });
+        }
+        res.status(500).json({ error: "Internal Server Error" })
     }
 }
 
@@ -28,10 +32,14 @@ module.exports.editCode = async (req, res) => {
         res.send(updated)
     } catch (error) {
         console.error("Error in editCode:", error);
-        const isRateLimit = error.status === 429 || error.code === 429 || (error.message && error.message.includes('429'));
-        if (isRateLimit) {
-            return res.status(429).json({ error: "Service currently overloaded. Please try again in a few moments." });
+        const status = error?.status || error?.code || error?.error?.code
+        const msg = String(error?.message || "")
+        if (status === 429 || msg.includes("429")) {
+            return res.status(429).json({ error: "AI rate-limited. Please try again shortly." });
         }
-        res.status(500).send("Internal Server Error")
+        if (status === 503 || msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("high demand")) {
+            return res.status(503).json({ error: "AI temporarily unavailable. Please try again shortly." });
+        }
+        res.status(500).json({ error: "Internal Server Error" })
     }
 }

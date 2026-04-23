@@ -157,6 +157,13 @@
     @apply border-border outline-ring/50;
   }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -374,3 +381,33 @@
     @apply text-blue-400;
   }
 }
+
+/* ── Custom Scrollbar Utility ── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.6);
+  background-clip: content-box;
+}
+
+/* ── Robust Scroll Container ── */
+.card-scroll-container {
+  display: block !important;
+  overflow: auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  position: relative;
+  scroll-behavior: smooth;
+}
+

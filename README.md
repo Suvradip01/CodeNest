@@ -1,17 +1,16 @@
-# CodeNest
+# 💻 CodeNest
 
 <div align="center">
   <img src="./AppPreview.png" alt="CodeNest Preview" width="100%" />
   <br />
-  <h1>CodeNest</h1>
-  <p><strong>AI-Powered Code Playground & Assistant</strong></p>
+  <p><strong>The Final AI-Powered Code Playground</strong></p>
   <p>
     <img src="https://img.shields.io/badge/React-19.2-blue?logo=react" alt="React" />
     <img src="https://img.shields.io/badge/Vite-7.2-purple?logo=vite" alt="Vite" />
     <img src="https://img.shields.io/badge/Tailwind_CSS-4.1-38bdf8?logo=tailwindcss" alt="Tailwind CSS" />
     <img src="https://img.shields.io/badge/Node.js-Express_5-green?logo=nodedotjs" alt="Node.js" />
-    <img src="https://img.shields.io/badge/AI-Gemini_2.5_Flash-orange?logo=google" alt="Google Gemini" />
-    <img src="https://img.shields.io/badge/Piston_API-Code_Execution-yellow" alt="Piston API" />
+    <img src="https://img.shields.io/badge/AI-Gemini_2.5_Flash-indigo?logo=google" alt="Google Gemini" />
+    <img src="https://img.shields.io/badge/Runner-Piston_API-yellow" alt="Piston API" />
   </p>
 </div>
 
@@ -19,165 +18,137 @@
 
 ## 🚀 Overview
 
-**CodeNest** is a modern, AI-enhanced code editor and playground that allows developers to write, execute, and review code in real-time. Built with a sleek React 19 frontend featuring Tailwind CSS 4 with glassmorphism design and a robust Node.js backend, it integrates **Google Gemini 2.5 Flash** for instant, intelligent code reviews and natural language code modifications. Code execution is powered by **Piston API**, eliminating the need for local compilers.
+**CodeNest** is a stunning, high-performance web-based code execution environment that seamlessly merges a traditional IDE with an intelligent AI assistant. 
 
-Whether you're learning a new language, debugging a script, or just experimenting, CodeNest provides a seamless environment with syntax highlighting, multiple language support, AI assistance, and a premium interactive UI with dark/light themes.
+Moving away from the cluttered "AI chat" interfaces, CodeNest is hyper-focused. It provides a highly tactile, responsive editor where code is a physical object you can execute, analyze, and mutate instantly using natural language commands. 
 
-## ✨ Key Features
+The application utilizes **Google's Gemini 2.5 Flash** for deep architectural analysis and logic rewriting, and the **Piston API** to safely compile and run arbitrary user code in isolated cloud containers.
 
-- **🌐 Multi-Language Support**: Write and execute code in **JavaScript**, **Python**, **Java**, and **C**.
-- **🤖 AI Code Review**: Get instant, comprehensive architectural and security analysis powered by Google Gemini 2.5 Flash with retry logic for reliability.
-- **✨ AI Code Editing**: Modify your code using natural language prompts (e.g., "Convert this function to use async/await").
-- **⚡ Remote Code Execution**: Run code securely via **Piston API** - no local compilers needed, sandboxed execution in the cloud.
-- **🎨 Premium Modern UI**: Beautiful glassmorphism design with floating panels, smooth gradients, interactive hover animations, and professional aesthetics.
-- **🌓 Adaptive Themes**: Toggle between light and dark modes with synchronized syntax highlighting (PrismJS + Highlight.js).
-- **📝 Rich Markdown Rendering**: View AI code reviews with syntax-highlighted code blocks and formatted markdown.
+---
 
-## 🛠️ Tech Stack
+## ✨ Core Features
 
-### Frontend
-- **Framework & Build Tool**
-  - React 19.2.0 - Modern UI library with latest features
-  - Vite 7.2.4 - Next-generation frontend tooling
-  - @vitejs/plugin-react 5.1.1 - Official React plugin for Vite
+1. **⚡ Instant Cloud Execution**: Write JavaScript, Python, Java, or C and run it instantly. No local compilers, no Docker setup, no environment variables.
+2. **🤖 Senior-Level AI Reviews**: Click "Review" to get a comprehensive markdown report. Gemini analyzes your Big-O time complexity, architectural patterns, security vulnerabilities, and adherence to SOLID principles.
+3. **🪄 Natural Language Edits**: Select your code, type "Refactor this to be async" or "Handle edge cases for null inputs", and watch the AI safely rewrite your editor's content.
+4. **🎨 Premium "Linear-style" UI**: A meticulous dark-mode UI with a single indigo accent color. Features staggered floating feature cards, custom CSS keyframe animations, glassmorphic panels, and glowing tooltips.
+5. **📺 Live Terminal**: Standard output (`stdout`) and standard error (`stderr`) are piped directly from the execution sandbox into a realistic, custom-built terminal panel.
 
-- **Styling & Design System**
-  - Tailwind CSS 4.1.17 - Utility-first CSS framework
-  - @tailwindcss/vite 4.1.17 - Tailwind CSS Vite plugin
-  - @tailwindcss/postcss 4.1.17 - PostCSS integration
-  - PostCSS 8.5.6 - CSS transformations
-  - Vanilla CSS - Custom properties, CSS Grid, and glassmorphism aesthetics
-  - class-variance-authority 0.7.1 - CVA for component variants
-  - clsx 2.1.1 - Utility for constructing className strings
-  - tailwind-merge 3.4.0 - Merge Tailwind CSS classes
+---
 
-- **Code Editor & Syntax Highlighting**
-  - react-simple-code-editor 0.14.1 - Lightweight code editor component
-  - PrismJS 1.30.0 - Syntax highlighting for JavaScript, Python, Java, C
-  - Highlight.js 11.11.1 - Additional syntax highlighting for markdown
+## 🏗️ Technical Architecture
 
-- **Markdown Rendering**
-  - react-markdown 10.1.0 - Markdown component for React
-  - rehype-highlight 7.0.2 - Syntax highlighting for code blocks in markdown
+CodeNest follows a clean, decoupled Client-Server architecture.
 
-- **UI Components & Icons**
-  - lucide-react 0.562.0 - Modern icon library
-  - Custom theme provider with dark/light mode support
+### 🌐 Frontend (React 19 + Tailwind 4)
+The frontend is a Single Page Application (SPA) built for extreme responsiveness.
+* **State Management**: Handled via React Hooks (`useState`, `useEffect`) at the topmost `<App />` component level and drilled down, keeping panels synchronized.
+* **Styling**: Tailwind CSS v4 handles utility classes, while a highly customized `index.css` manages complex CSS variable themes and precise keyframe animations (like `card-bob`, `blink`, and `land-up`).
+* **Editor**: Uses `react-simple-code-editor` combined with `PrismJS` for lightweight, lag-free syntax highlighting.
+* **Component Tree**:
+  * `LandingPage.jsx`: The animated hero entry point with staggering float animations.
+  * `Topbar.jsx`: Global controls (Theme, Language, Review trigger).
+  * `EditorPanel.jsx`: The raw coding surface.
+  * `PromptPanel.jsx`: The NLP command interface.
+  * `ReviewPanel.jsx`: Renders AI markdown using `react-markdown` + `rehype-highlight`.
+  * `TerminalPanel.jsx`: Maps remote execution output to DOM nodes.
 
-- **HTTP Client**
-  - Axios 1.13.2 - Promise-based HTTP client
+### ⚙️ Backend (Node.js + Express 5)
+A lightweight proxy server that acts as a secure bridge between the frontend and third-party APIs.
+* **Direct Routing**: Bypasses heavy MVC controllers in favor of direct Route `->` Service delegation (`ai.routes.js` `->` `ai.services.js`) for maximum speed.
+* **Exponential Backoff**: The backend wraps the Gemini SDK in a custom retry mechanism (`generateWithRetry`). If the Google API rate-limits the app (429 errors), the server intelligently waits and retries rather than crashing the client.
+* **Code Execution Proxy**: The `/code/run` endpoint translates frontend language selections (e.g., 'python') into Piston API parameters (version `3.10.0`, filename `script.py`), sends the payload, and sanitizes the response for the frontend terminal.
 
-- **Development Tools**
-  - ESLint 9.39.1 - JavaScript linting
-  - @eslint/js 9.39.1 - ESLint JavaScript configs
-  - eslint-plugin-react-hooks 7.0.1 - React Hooks linting rules
-  - eslint-plugin-react-refresh 0.4.24 - React Refresh linting
-  - globals 16.5.0 - Global variables for different environments
+---
 
+## 🔄 Data Lifecycle & Flow
 
-### Backend
-- **Runtime & Server**
-  - Node.js (CommonJS) - JavaScript runtime
-  - Express 5.1.0 - Modern web framework for Node.js
+1. **Execution Flow**: 
+   `User clicks Run` -> `Frontend Axios POST /code/run` -> `Express Backend` -> `Piston Server (sandboxed Docker execution)` -> `stdout/stderr returned to Express` -> `Frontend TerminalPanel maps strings to green/red output lines.`
 
-- **AI Integration**
-  - @google/genai 1.30.0 - Google Gemini 2.5 Flash AI model
-    - AI-powered code reviews with architectural analysis
-    - Natural language code editing
-    - Retry logic with exponential backoff for rate limiting
+2. **Review Flow**:
+   `User clicks Review` -> `Frontend Axios POST /ai/get-review` -> `Express Backend injects strict Markdown System Prompt` -> `Gemini 2.5 Flash analyzes code` -> `Structured Markdown returned to Frontend` -> `ReviewPanel parses and syntax-highlights the Markdown.`
 
-- **Code Execution**
-  - Piston API (emkc.org/api/v2/piston/execute) - Remote code execution service
-  - Supports JavaScript (v18.15.0), Python (v3.10.0), Java (v15.0.2), C (v10.2.0)
-  - Sandboxed execution environment
+---
 
-- **Middleware & Utilities**
-  - CORS 2.8.5 - Cross-Origin Resource Sharing
-  - dotenv 17.2.3 - Environment variable management
+## 📂 Project Structure
 
-### Architecture & Patterns
-- **Frontend Architecture**
-  - Component-based architecture with React
-  - Custom theme provider pattern
-  - Service layer for API abstraction
-  - Utility functions (cn helper for className merging)
-
-- **Backend Architecture**
-  - MVC-like pattern (Routes → Controllers → Services)
-  - Service-oriented architecture for AI operations
-  - RESTful API design
-
-### Development Environment
-- **Version Control**: Git (.gitignore configured)
-- **Package Managers**: npm (package-lock.json)
-- **Module Systems**: ESM (Frontend), CommonJS (Backend)
-- **Languages**: Pure JavaScript/JSX (No TypeScript)
-- **Environment**: Development server on localhost (Backend: 3000, Frontend: 5173)
-
-## ⚙️ Prerequisites
-
-Before running CodeNest, ensure you have the following installed:
-
-1. **Node.js** (v18 or higher recommended) - For running both frontend and backend
-2. **npm** - Package manager (comes with Node.js)
-3. A **Google Gemini API Key** - Get one from [Google AI Studio](https://aistudio.google.com/)
-
-> **Note**: You do NOT need to install Python, Java, or C compilers locally. CodeNest uses **Piston API** for remote code execution, which provides sandboxed environments for all supported languages.
-
-## 📦 Installation
-
-Clone the repository to your local machine:
-
-```bash
-git clone https://github.com/your-username/CodeNest.git
-cd CodeNest
+```text
+CodeNest/
+├── Frontend/
+│   ├── index.html
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   └── src/
+│       ├── App.jsx                 # Application state hub
+│       ├── index.css               # Global theme variables & custom keyframes
+│       ├── components/  
+│       │   ├── LandingPage.jsx     # Animated entry sequence
+│       │   ├── EditorPanel.jsx     # PrismJS text area
+│       │   ├── TerminalPanel.jsx   # Live output console
+│       │   ├── PromptPanel.jsx     # AI instruction input
+│       │   ├── ReviewPanel.jsx     # AI markdown renderer
+│       │   └── theme-provider.jsx  # Dark/Light mode context
+│       └── services/
+│           └── api.js              # Axios HTTP wrappers
+│
+└── Backend/
+    ├── server.js                   # Application entry point (Port 3000)
+    ├── package.json
+    └── src/
+        ├── app.js                  # Express middleware & direct /code/run logic
+        ├── routes/
+        │   └── ai.routes.js        # Defines POST /ai/get-review & /ai/edit-code
+        └── services/
+            └── ai.services.js      # Gemini 2.5 SDK logic & Exponential Backoff
 ```
 
-### 1. Backend Setup
+---
 
-Navigate to the backend directory and install dependencies:
+## ⚙️ Installation & Setup
+
+### Prerequisites
+- **Node.js** (v18+)
+- **Google Gemini API Key** (Get it from Google AI Studio)
+
+### 1. Backend
 
 ```bash
 cd Backend
 npm install
 ```
-
-Create a `.env` file in the `Backend` directory and add your Gemini API key:
-
+Create a `.env` file in the `Backend` directory:
 ```env
 GOOGLE_GEMINI_KEY=your_actual_api_key_here
 ```
-
-Start the backend server:
-
+Run the server:
 ```bash
 node server.js
-# Server runs on http://localhost:3000
+# Runs on http://localhost:3000
 ```
 
-### 2. Frontend Setup
+### 2. Frontend
 
-Open a new terminal, navigate to the frontend directory, and install dependencies:
-
+In a new terminal window:
 ```bash
 cd Frontend
 npm install
-```
-
-Start the development server:
-
-```bash
 npm run dev
-# Frontend runs on http://localhost:5173 (usually)
+# Runs on http://localhost:5173
 ```
 
-## 🎮 Usage
+---
 
-1. **Write Code**: Select a language (JS, Python, Java, C) from the top bar and start typing.
-2. **Run Code**: Click the **Run** button to execute the script and see the output in the terminal panel.
-3. **Get Review**: Click **Review Code** to receive an AI-generated analysis of your code, including improvements and explanations.
-4. **Edit with AI**: Type a prompt in the bottom panel (e.g., "Optimize this loop") and click the send icon to have the AI rewrite your code safely.
+## 🔮 Future Roadmap (Differentiators)
 
-## 🤝 Contributing
+While CodeNest currently excels as a playground, planned updates aim to push it into a unique category beyond standard LLMs:
 
-Contributions are welcome! Please fork the repository and submit a pull request for any features, bug fixes, or improvements.
+* **The Strict Tech Interviewer**: An upcoming mode where the AI gives you a LeetCode problem, watches you code, forces you to optimize your Big-O complexity, and refuses to give you the direct answer.
+* **Gamified Bug Hunts**: Timed challenges where the AI injects specific vulnerabilities (like race conditions or SQL injections) and you must patch them within 60 seconds to climb a global leaderboard.
+* **Visual Execution State**: Integration with Mermaid.js to auto-generate architecture diagrams dynamically based on the code written in the editor.
+
+---
+
+<div align="center">
+  <i>Built with absolute precision.</i>
+</div>

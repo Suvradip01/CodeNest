@@ -15,19 +15,22 @@ import { Play } from 'lucide-react'
 // - onRun: click handler to execute current code
 // - language: selected language string ('javascript' | 'python' | 'java' | 'c')
 
+const LANG_COLORS = {
+  javascript: 'text-amber-600 dark:text-yellow-400',
+  python: 'text-blue-600 dark:text-blue-400',
+  java: 'text-orange-600 dark:text-orange-400',
+  c: 'text-cyan-600 dark:text-cyan-400',
+}
+
 export default function EditorPanel({ code, setCode, onRun, language = 'javascript' }) {
-  const langKey = language === 'javascript' ? 'javascript'
-    : language === 'python' ? 'python'
-      : language === 'java' ? 'java'
-        : language === 'c' ? 'c'
-          : 'javascript'
+  const langKey = language.toLowerCase()
   return (
-    <div className="bg-white/60 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col h-full shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] group relative">
+    <div className="bg-white/70 dark:bg-zinc-900/50 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden flex flex-col h-full min-h-0 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] group relative">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30 backdrop-blur-md">
         <span className="font-semibold text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 dark:bg-cyan-400"></span>
           Editor
-          <span className="text-[10px] font-normal text-cyan-700 dark:text-cyan-400/80 bg-cyan-100/50 dark:bg-cyan-400/10 px-1.5 py-0.5 rounded border border-cyan-200 dark:border-cyan-400/20">{language}</span>
+          <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded border ${LANG_COLORS[langKey] || 'text-cyan-700 dark:text-cyan-400/80'} bg-cyan-100/50 dark:bg-cyan-400/10 border-cyan-200 dark:border-cyan-400/20`}>{language}</span>
         </span>
         <Button
           onClick={onRun}
@@ -63,24 +66,21 @@ export default function EditorPanel({ code, setCode, onRun, language = 'javascri
           </div>
         </Button>
       </div>
-      <div className="p-0 overflow-auto flex-1 relative group bg-transparent">
-        <div className="h-full w-full bg-transparent transition-colors">
-          <Editor
-            value={code}
-            onValueChange={v => setCode(v)}
-            highlight={v => prism.highlight(v, prism.languages[langKey] || prism.languages.javascript, langKey)}
-            padding={24}
-            style={{
-              fontFamily: '"Fira Mono", monospace', // Use a standard reliably aligned font
-              fontSize: 14,
-              minHeight: '100%',
-              lineHeight: '24px', // Use fixed pixel value for exact alignment
-              caretColor: '#22d3ee', // Cyan caret
-            }}
-            textareaClassName="focus:outline-none text-foreground whitespace-pre-wrap outline-none border-none"
-            preClassName="whitespace-pre-wrap" // Match whitespace handling
-          />
-        </div>
+      <div className="p-0 card-scroll-container custom-scrollbar bg-transparent">
+        <Editor
+          value={code}
+          onValueChange={v => setCode(v)}
+          highlight={v => prism.highlight(v, prism.languages[langKey] || prism.languages.javascript, langKey)}
+          padding={24}
+          style={{
+            fontFamily: '"Fira Mono", monospace',
+            fontSize: 14,
+            lineHeight: '24px',
+            caretColor: '#22d3ee',
+          }}
+          textareaClassName="focus:outline-none text-foreground whitespace-pre-wrap outline-none border-none"
+          preClassName="whitespace-pre-wrap"
+        />
       </div>
     </div>
   )
