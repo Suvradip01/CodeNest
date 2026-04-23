@@ -21,19 +21,7 @@ app.use(cors())
 // Parse JSON bodies
 app.use(express.json())
 
-// Serve static frontend files in production
-app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
-
-app.get('/', (req, res) => {
-    // If we're in production and the file exists, send index.html
-    const indexPath = path.join(__dirname, '../../Frontend/dist/index.html')
-    const fs = require('fs')
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath)
-    } else {
-        res.send('CodeNest Backend — Running (Frontend not built)')
-    }
-})// ─── API Routes with /api prefix ──────────────────────────────────────────
+// ─── API Routes with /api prefix ──────────────────────────────────────────
 app.use('/api/projects', projectRoutes)
 
 app.post('/api/ai/get-review', aiRoutes.getReview)
@@ -118,6 +106,20 @@ app.post('/api/code/run', async (req, res) => {
             stderr: [err.message],
             exitCode: 1
         })
+    }
+})
+
+// Serve static frontend files in production
+app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
+
+app.get('/', (req, res) => {
+    // If we're in production and the file exists, send index.html
+    const indexPath = path.join(__dirname, '../../Frontend/dist/index.html')
+    const fs = require('fs')
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath)
+    } else {
+        res.send('CodeNest Backend — Running (Frontend not built)')
     }
 })
 
