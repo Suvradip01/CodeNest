@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Code2, Play, Sparkles, Globe, Shield, ArrowRight, Terminal, Bot, ChevronRight } from 'lucide-react'
+import { Code2, Play, Sparkles, Globe, Shield, ArrowRight, Terminal, Bot, ChevronRight, GitFork, Clock, FolderOpen } from 'lucide-react'
 
 /* ─── Typing hook ─────────────────────────────────────────── */
 function useTyping(words, speed = 75, pause = 2000) {
@@ -19,9 +19,10 @@ function useTyping(words, speed = 75, pause = 2000) {
 }
 
 /* ─── Code preview ────────────────────────────────────────── */
+/* ─── Code preview ────────────────────────────────────────── */
 const CODE_LINES = [
   [{ t: 'kw', v: 'const ' }, { t: 'fn', v: 'analyze' }, { t: 'pl', v: ' = ' }, { t: 'kw', v: 'async ' }, { t: 'pl', v: '(code) => {' }],
-  [{ t: 'cm', v: '  // Ask Gemini 2.5 Flash for a review' }],
+  [{ t: 'cm', v: '  // Ask Grok for a deep architectural review' }],
   [{ t: 'pl', v: '  ' }, { t: 'kw', v: 'const ' }, { t: 'pl', v: 'review = ' }, { t: 'kw', v: 'await ' }, { t: 'fn', v: 'getReview' }, { t: 'pl', v: '(code)' }],
   [{ t: 'pl', v: '  ' }, { t: 'kw', v: 'return ' }, { t: 'pl', v: '{ rating, issues, refactor }' }],
   [{ t: 'pl', v: '}' }],
@@ -30,18 +31,18 @@ const CLR = { kw: 'text-indigo-400', fn: 'text-sky-300', cm: 'text-zinc-600 ital
 
 /* ─── Feature cards ───────────────────────────────────────── */
 const CARDS = [
-  { title: 'Instant Execution',     desc: 'Sandboxed cloud runner — no local compilers needed.',
+  { title: 'Instant Execution',     desc: 'Sandboxed cloud runner with local Node.js fallback.',
     grad: 'from-sky-500/[0.18] to-sky-600/[0.04]', border: 'border-sky-500/30', dot: 'bg-sky-400',    iconClass: 'text-sky-400',    glow: '0 0 40px rgba(14,165,233,0.18)',   Icon: Play     },
-  { title: 'AI Code Review',         desc: 'Architecture, security & Big-O from Gemini 2.5 Flash.',
+  { title: 'Grok AI Review',         desc: 'Deep logic, security & Big-O analysis from Grok.',
     grad: 'from-purple-500/[0.18] to-purple-600/[0.04]', border: 'border-purple-500/30', dot: 'bg-purple-400', iconClass: 'text-purple-400', glow: '0 0 40px rgba(168,85,247,0.18)',  Icon: Bot      },
-  { title: 'NL Code Edits',          desc: 'Describe a change in English. AI rewrites instantly.',
-    grad: 'from-violet-500/[0.18] to-violet-600/[0.04]', border: 'border-violet-500/30', dot: 'bg-violet-400', iconClass: 'text-violet-400', glow: '0 0 40px rgba(139,92,246,0.18)', Icon: Sparkles },
-  { title: 'Multi-Language',          desc: 'Full syntax highlighting for JS, Python, Java & C.',
-    grad: 'from-emerald-500/[0.18] to-emerald-600/[0.04]', border: 'border-emerald-500/30', dot: 'bg-emerald-400', iconClass: 'text-emerald-400', glow: '0 0 40px rgba(16,185,129,0.18)', Icon: Globe },
-  { title: 'Live Terminal',           desc: 'stdout & stderr streamed line-by-line in real time.',
+  { title: 'Visual Flow',           desc: 'Instant Mermaid diagrams for complex code logic.',
+    grad: 'from-emerald-500/[0.18] to-emerald-600/[0.04]', border: 'border-emerald-500/30', dot: 'bg-emerald-400', iconClass: 'text-emerald-400', glow: '0 0 40px rgba(16,185,129,0.18)', Icon: GitFork },
+  { title: 'Code Versioning',        desc: 'Time-travel through snapshots with AI diff analysis.',
+    grad: 'from-indigo-500/[0.18] to-indigo-600/[0.04]', border: 'border-indigo-500/30', dot: 'bg-indigo-400', iconClass: 'text-indigo-400', glow: '0 0 40px rgba(99,102,241,0.18)', Icon: Clock },
+  { title: 'AI Debug Mode',          desc: 'Caught an error? Grok explains and fixes it instantly.',
     grad: 'from-amber-500/[0.18] to-amber-600/[0.04]', border: 'border-amber-500/30', dot: 'bg-amber-400', iconClass: 'text-amber-400', glow: '0 0 40px rgba(245,158,11,0.18)',   Icon: Terminal },
-  { title: 'Zero Setup',              desc: 'No accounts. No installs. Open the URL and code.',
-    grad: 'from-rose-500/[0.18] to-rose-600/[0.04]', border: 'border-rose-500/30', dot: 'bg-rose-400',  iconClass: 'text-rose-400',   glow: '0 0 40px rgba(244,63,94,0.18)',    Icon: Shield   },
+  { title: 'Project System',         desc: 'Full multi-file management synced to MongoDB Atlas.',
+    grad: 'from-rose-500/[0.18] to-rose-600/[0.04]', border: 'border-rose-500/30', dot: 'bg-rose-400',  iconClass: 'text-rose-400',   glow: '0 0 40px rgba(244,63,94,0.18)',    Icon: FolderOpen },
 ]
 
 // Static Y offset for visual stagger — applied via a wrapper so it composes with the float animation
