@@ -139,8 +139,14 @@ export default function LandingPage({
   const [exit, setExit] = useState(false)
 
   const launch = () => {
-    setExit(true)
-    setTimeout(onLaunch, 500)
+    // Only fade out if we are actually going to the workspace (logged in)
+    if (session?.token) {
+      setExit(true)
+      setTimeout(onLaunch, 500)
+    } else {
+      // If we need to sign in, just call onLaunch without fading out
+      onLaunch()
+    }
   }
 
   return (
