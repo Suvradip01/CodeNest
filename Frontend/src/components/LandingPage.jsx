@@ -84,7 +84,7 @@ export default function LandingPage({ onLaunch }) {
           <span className="font-semibold text-[15px] tracking-tight">CodeNest</span>
         </div>
         <div className="flex items-center gap-6">
-          <span className="text-xs text-zinc-600 font-mono hidden sm:block">gemini-2.5-flash · piston-api</span>
+
           <button onClick={launch} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors duration-200">
             Open editor <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -201,7 +201,7 @@ export default function LandingPage({ onLaunch }) {
 
       {/* ── Footer ─────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-white/[0.04] py-5 text-center text-[11px] text-zinc-700 tracking-wide">
-        React 19 · Vite 7 · Tailwind CSS 4 · Google Gemini 2.5 Flash · Piston API
+        CodeNest · © 2026
       </footer>
 
       {/* ── Keyframes ──────────────────────────────────────── */}
