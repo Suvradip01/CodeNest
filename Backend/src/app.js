@@ -132,8 +132,10 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(['/api/auth', '/auth'], authRoutes);
-app.use(['/api/projects', '/projects'], requireAuthIfConfigured, projectLimiter, projectRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+app.use('/api/projects', requireAuthIfConfigured, projectLimiter, projectRoutes);
+app.use('/projects', requireAuthIfConfigured, projectLimiter, projectRoutes);
 
 app.post(
     ['/api/ai/get-review', '/ai/get-review'],
