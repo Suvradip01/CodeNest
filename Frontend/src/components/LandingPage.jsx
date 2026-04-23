@@ -66,7 +66,7 @@ export default function LandingPage({ onLaunch }) {
 
   return (
     <div
-      className="min-h-screen bg-[#080808] text-white flex flex-col overflow-x-hidden"
+      className="min-h-screen bg-[#080808] text-white flex flex-col overflow-x-hidden overflow-y-auto"
       style={{ transition: 'opacity 0.5s ease, transform 0.5s ease', opacity: exit ? 0 : 1, transform: exit ? 'scale(1.015)' : 'scale(1)' }}
     >
       {/* ── Ambient orb (single, restrained) ────────────────── */}
