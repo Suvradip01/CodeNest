@@ -31,17 +31,17 @@ const CLR = { kw: 'text-indigo-400', fn: 'text-sky-300', cm: 'text-zinc-600 ital
 
 /* ─── Feature cards ───────────────────────────────────────── */
 const CARDS = [
-  { title: 'Instant Execution',     desc: 'Sandboxed cloud runner with local Node.js fallback.',
+  { title: 'Instant Execution',     desc: 'Sandboxed cloud runner with local Node.js fallback for 4 languages.',
     grad: 'from-sky-500/[0.18] to-sky-600/[0.04]', border: 'border-sky-500/30', dot: 'bg-sky-400',    iconClass: 'text-sky-400',    glow: '0 0 40px rgba(14,165,233,0.18)',   Icon: Play     },
-  { title: 'Grok AI Review',         desc: 'Deep logic, security & Big-O analysis from Grok.',
+  { title: 'Grok AI Review',         desc: 'Deep architecture, security & Big-O analysis powered by Grok AI.',
     grad: 'from-purple-500/[0.18] to-purple-600/[0.04]', border: 'border-purple-500/30', dot: 'bg-purple-400', iconClass: 'text-purple-400', glow: '0 0 40px rgba(168,85,247,0.18)',  Icon: Bot      },
-  { title: 'Visual Flow',           desc: 'Instant Mermaid diagrams for complex code logic.',
+  { title: 'Visual Flow Diagram',    desc: 'Realtime flowchart diagrams for better logic understanding.',
     grad: 'from-emerald-500/[0.18] to-emerald-600/[0.04]', border: 'border-emerald-500/30', dot: 'bg-emerald-400', iconClass: 'text-emerald-400', glow: '0 0 40px rgba(16,185,129,0.18)', Icon: GitFork },
-  { title: 'Code Versioning',        desc: 'Time-travel through snapshots with AI diff analysis.',
+  { title: 'Smart Versioning',       desc: 'Time-travel through code snapshots with AI-powered diff explanations.',
     grad: 'from-indigo-500/[0.18] to-indigo-600/[0.04]', border: 'border-indigo-500/30', dot: 'bg-indigo-400', iconClass: 'text-indigo-400', glow: '0 0 40px rgba(99,102,241,0.18)', Icon: Clock },
-  { title: 'AI Debug Mode',          desc: 'Caught an error? Grok explains and fixes it instantly.',
+  { title: 'AI Debug Mode',          desc: 'Caught an error? Grok instantly explains and fixes it for you.',
     grad: 'from-amber-500/[0.18] to-amber-600/[0.04]', border: 'border-amber-500/30', dot: 'bg-amber-400', iconClass: 'text-amber-400', glow: '0 0 40px rgba(245,158,11,0.18)',   Icon: Terminal },
-  { title: 'Project System',         desc: 'Full multi-file management synced to MongoDB Atlas.',
+  { title: 'Cloud Project System',   desc: 'Multi-file file management synced to MongoDB Atlas for persistence.',
     grad: 'from-rose-500/[0.18] to-rose-600/[0.04]', border: 'border-rose-500/30', dot: 'bg-rose-400',  iconClass: 'text-rose-400',   glow: '0 0 40px rgba(244,63,94,0.18)',    Icon: FolderOpen },
 ]
 
