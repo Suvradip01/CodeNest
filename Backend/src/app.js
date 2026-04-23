@@ -112,6 +112,15 @@ app.post(['/api/code/run', '/code/run'], async (req, res) => {
 // Serve static frontend files in production
 app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
 
+app.get(['/api/health', '/health'], (req, res) => {
+    res.json({
+        status: 'ok',
+        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        groq_api_key: process.env.GROQ_API_KEY ? 'present' : 'missing',
+        time: new Date().toISOString()
+    })
+})
+
 app.get('/', (req, res) => {
     // If we're in production and the file exists, send index.html
     const indexPath = path.join(__dirname, '../../Frontend/dist/index.html')
