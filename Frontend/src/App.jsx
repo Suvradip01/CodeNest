@@ -67,13 +67,13 @@ function getApiErrorMessage(error, fallback = 'Request failed') {
   const status = error?.response?.status
   const message =
     error?.response?.data?.error ||
-    error?.response?.data ||
+    (typeof error?.response?.data === 'string' ? error.response.data : null) ||
     error?.message ||
     fallback
 
   return {
     status: status || 'unknown',
-    message: String(message),
+    message: typeof message === 'object' ? JSON.stringify(message) : String(message),
   }
 }
 
