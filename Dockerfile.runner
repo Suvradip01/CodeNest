@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install all necessary compilers
-RUN apk add --no-cache python3 g++ gcc make openjdk17-jre
+RUN apk add --no-cache python3 g++ gcc make openjdk17-jdk
 
 # Copy runner logic
 COPY Runner/package*.json ./
@@ -11,8 +11,9 @@ RUN npm install --production
 COPY Runner/ ./
 
 # Run as non-root for security
-# RUN addgroup -S runner && adduser -S runner -G runner
-# USER runner
+RUN addgroup -S runner && adduser -S runner -G runner -u 10001 \
+    && chown -R runner:runner /app
+USER runner
 
 EXPOSE 3001
 CMD ["node", "server.js"]

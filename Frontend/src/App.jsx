@@ -1,10 +1,5 @@
-// Core UI and styling imports
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-// Theme management
-import { ThemeProvider, useTheme } from './components/theme-provider'
-
-// ── Existing modular UI components ────────────────────────────────────────
 import LandingPage from './components/LandingPage'
 import Desktop from './components/Desktop'
 import Topbar from './components/Topbar'
@@ -12,29 +7,32 @@ import EditorPanel from './components/EditorPanel'
 import ReviewPanel from './components/ReviewPanel'
 import TerminalPanel from './components/TerminalPanel'
 import PromptPanel from './components/PromptPanel'
-
-// ── New feature components ────────────────────────────────────────────────
 import LiveHintsPanel from './components/LiveHintsPanel'
 import ProjectSidebar from './components/ProjectSidebar'
 import VersionTimeline from './components/VersionTimeline'
 import DebugPanel from './components/DebugPanel'
+import AuthDialog from './components/AuthDialog'
 
-// ── Custom hooks ──────────────────────────────────────────────────────────
 import { useProjectStore } from './hooks/useProjectStore'
 import { useVersionStore } from './hooks/useVersionStore'
 
-// ── API service layer ─────────────────────────────────────────────────────
 import {
-  getReview,
-  runCode as runCodeApi,
-  editCode,
-  liveCheck,
-  explainDiff,
+  clearStoredSession,
   debugFix,
+  editCode,
+  fetchHealth,
+  getCurrentUserApi,
+  getReview,
+  getStoredSession,
+  liveCheck,
+  loginUserApi,
+  persistSession,
+  registerUserApi,
+  runCode as runCodeApi,
   visualizeCode,
+  explainDiff,
 } from './services/api'
 
-// Built-in sample code for quick language switching
 const SNIPPETS = {
   javascript: `// Print "Hello, World!" to the console\nconsole.log("Hello, World!");`,
   python: `# Print "Hello, World!" to the console\nprint("Hello, World!")`,
@@ -42,93 +40,264 @@ const SNIPPETS = {
   c: `/*\n * Print "Hello, World!"\n */\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`,
 }
 
-// Utility: extract fenced code ```lang\n...``` from AI responses when present
 function extractCode(text) {
   const fence = text.match(/```[a-zA-Z0-9]*\n([\s\S]*?)```/)
   if (fence && fence[1]) return fence[1].trim()
   return text
 }
 
-// Detect if output lines contain error signals
 function detectErrors(lines) {
   const errorPatterns = [
-    /error/i, /exception/i, /traceback/i, /syntaxerror/i,
-    /typeerror/i, /referenceerror/i, /segmentation fault/i,
-    /undefined.*is not/i, /cannot read/i, /failed/i,
+    /error/i,
+    /exception/i,
+    /traceback/i,
+    /syntaxerror/i,
+    /typeerror/i,
+    /referenceerror/i,
+    /segmentation fault/i,
+    /undefined.*is not/i,
+    /cannot read/i,
+    /failed/i,
   ]
-  return lines.some(l => errorPatterns.some(p => p.test(l)))
+
+  return lines.some(line => errorPatterns.some(pattern => pattern.test(line)))
 }
 
-// Root application component
-function App() {
-  // ── View state ────────────────────────────────────────────────────────
-  const [view, setView] = useState('landing')
+function getApiErrorMessage(error, fallback = 'Request failed') {
+  const status = error?.response?.status
+  const message =
+    error?.response?.data?.error ||
+    error?.response?.data ||
+    error?.message ||
+    fallback
 
-  // ── Editor state ──────────────────────────────────────────────────────
+  return {
+    status: status || 'unknown',
+    message: String(message),
+  }
+}
+
+function App() {
+  const authRequired = false
+  const initialSession = useRef(getStoredSession())
+  const [view, setView] = useState('landing')
   const [language, setLanguage] = useState('javascript')
   const [code, setCode] = useState(SNIPPETS.javascript)
   const [review, setReview] = useState('')
   const [output, setOutput] = useState([])
   const [prompt, setPrompt] = useState('')
-
-  // ── Feature 1: Live AI Layer ──────────────────────────────────────────
   const [showLivePanel, setShowLivePanel] = useState(false)
   const [liveHints, setLiveHints] = useState(null)
   const [isLiveLoading, setIsLiveLoading] = useState(false)
-  const liveDebounceRef = useRef(null)
-
-  // ── Feature 2: Project System ─────────────────────────────────────────
   const [showProjectSidebar, setShowProjectSidebar] = useState(false)
-  const projectStore = useProjectStore()
-
-  // ── Feature 3: Versioning ─────────────────────────────────────────────
   const [showVersionPanel, setShowVersionPanel] = useState(false)
-  const versionStore = useVersionStore()
-
-  // ── Feature 4: AI Debug Mode ──────────────────────────────────────────
   const [hasError, setHasError] = useState(false)
   const [stderrLines, setStderrLines] = useState([])
   const [showDebugPanel, setShowDebugPanel] = useState(false)
   const [isFixing, setIsFixing] = useState(false)
   const [fixResult, setFixResult] = useState(null)
-
-  // ── Feature 5: Visual Execution ───────────────────────────────────────
   const [mermaidDiagram, setMermaidDiagram] = useState('')
   const [isVisualizing, setIsVisualizing] = useState(false)
+  const [authConfig, setAuthConfig] = useState({ loading: true, required: true })
+  const [session, setSession] = useState(initialSession.current)
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
+  const [authError, setAuthError] = useState('')
+  const [isSubmittingAuth, setIsSubmittingAuth] = useState(false)
+  const liveDebounceRef = useRef(null)
 
-  useTheme()
+  const workspaceEnabled = Boolean(session?.token)
+  const projectStore = useProjectStore({ enabled: workspaceEnabled })
+  const versionStore = useVersionStore()
+  const activeFile = projectStore.activeFile
+  const activeProjectId = projectStore.activeProjectId
+  const activeFileId = projectStore.activeFileId
+  const updateFileContent = projectStore.updateFileContent
 
-  // ── Live AI: debounced call on code change ────────────────────────────
+  useEffect(() => {
+    let ignore = false
+
+    async function bootstrap() {
+      try {
+        await fetchHealth()
+        if (!ignore) {
+          setAuthConfig({
+            loading: false,
+            required: true,
+          })
+        }
+      } catch (error) {
+        console.error('Health check failed:', error)
+        if (!ignore) {
+          setAuthConfig({ loading: false, required: true })
+        }
+      }
+
+      if (!initialSession.current?.token) return
+
+      try {
+        const user = await getCurrentUserApi()
+        if (ignore) return
+
+        const hydratedSession = {
+          ...initialSession.current,
+          user,
+        }
+        persistSession(hydratedSession)
+        setSession(hydratedSession)
+      } catch (error) {
+        console.error('Session restore failed:', error)
+        clearStoredSession()
+        if (!ignore) {
+          setSession(null)
+        }
+      }
+    }
+
+    bootstrap()
+
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!session?.token && view !== 'landing') {
+      setView('landing')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      setAuthError('Sign in or create an account to continue.')
+    }
+  }, [session?.token, view])
+
+
   useEffect(() => {
     if (!showLivePanel) return
+
     if (liveDebounceRef.current) clearTimeout(liveDebounceRef.current)
+
     liveDebounceRef.current = setTimeout(async () => {
-      if (!code.trim()) { setLiveHints(null); return }
+      if (!code.trim()) {
+        setLiveHints(null)
+        return
+      }
+
       setIsLiveLoading(true)
       try {
         const hints = await liveCheck(code, language)
         setLiveHints(hints)
-      } catch (e) {
-        const errorMsg = e?.response?.data?.error || e.message || 'Live check failed'
-        setLiveHints({ error: errorMsg })
+      } catch (error) {
+        const { message } = getApiErrorMessage(error, 'Live check failed')
+        setLiveHints({ error: message })
       } finally {
         setIsLiveLoading(false)
       }
     }, 2000)
+
     return () => clearTimeout(liveDebounceRef.current)
   }, [code, language, showLivePanel])
 
-  // ── Project: auto-save code back to active file ───────────────────────
+  const lastSavedCode = useRef(code)
+  const saveDebounceRef = useRef(null)
+  const isSaving = useRef(false)
+  
   useEffect(() => {
-    if (projectStore.activeFile && projectStore.activeProjectId) {
-      projectStore.updateFileContent(projectStore.activeProjectId, projectStore.activeFileId, code)
-    }
-  }, [code]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!activeFileId || !activeProjectId || isSaving.current) return
+    if (code === lastSavedCode.current) return
 
-  // ── Feature 2: open a file from project sidebar ───────────────────────
-  const handleFileOpen = useCallback((file, lang) => {
-    setCode(file.content || SNIPPETS[lang] || '')
-    setLanguage(lang)
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current)
+
+    saveDebounceRef.current = setTimeout(async () => {
+      try {
+        isSaving.current = true
+        lastSavedCode.current = code
+        await updateFileContent(activeProjectId, activeFileId, code)
+      } catch (error) {
+        console.error('Auto-save failed:', error)
+      } finally {
+        isSaving.current = false
+      }
+    }, 2000)
+
+    return () => clearTimeout(saveDebounceRef.current)
+  }, [activeFileId, activeProjectId, code]) // Removed updateFileContent from deps as it is stable
+
+  const openAuth = useCallback((mode = 'login') => {
+    setAuthMode(mode)
+    setAuthError('')
+    setIsAuthOpen(true)
+  }, [])
+
+  const handleLaunchWorkspace = useCallback(() => {
+    if (authConfig.loading) return
+
+    if (!session?.token) {
+      openAuth('register')
+      return
+    }
+
+    setView('desktop')
+  }, [authConfig.loading, openAuth, session?.token])
+
+  const handleLaunchEditor = useCallback(() => {
+    if (authConfig.loading) return
+
+    if (!session?.token) {
+      openAuth('login')
+      return
+    }
+
+    setView('dashboard')
+  }, [authConfig.loading, openAuth, session?.token])
+
+  const handleAuthSubmit = useCallback(async ({ mode, name, email, password }) => {
+    setIsSubmittingAuth(true)
+    setAuthError('')
+
+    try {
+      const nextSession = mode === 'register'
+        ? await registerUserApi({ name, email, password })
+        : await loginUserApi({ email, password })
+
+      persistSession(nextSession)
+      setSession(nextSession)
+      setIsAuthOpen(false)
+
+      if (view === 'landing') {
+        setView('desktop')
+      }
+    } catch (error) {
+      const { message } = getApiErrorMessage(error, 'Authentication failed')
+      setAuthError(message)
+    } finally {
+      setIsSubmittingAuth(false)
+    }
+  }, [view])
+
+  const handleLogout = useCallback(() => {
+    clearStoredSession()
+    setSession(null)
+    setView('landing')
+    setReview('')
+    setOutput([])
+    setPrompt('')
+    setShowProjectSidebar(false)
+    setShowVersionPanel(false)
+    setShowLivePanel(false)
+    setLiveHints(null)
+    setHasError(false)
+    setStderrLines([])
+    setShowDebugPanel(false)
+    setFixResult(null)
+    setMermaidDiagram('')
+    projectStore.reset()
+  }, [projectStore])
+
+  const handleFileOpen = useCallback((file, nextLanguage) => {
+    const nextCode = file.content || SNIPPETS[nextLanguage] || ''
+    setCode(nextCode)
+    lastSavedCode.current = nextCode
+    setLanguage(nextLanguage)
     setOutput([])
     setHasError(false)
     setStderrLines([])
@@ -136,245 +305,277 @@ function App() {
     setFixResult(null)
   }, [])
 
-  // ── Review code ───────────────────────────────────────────────────────
-  async function reviewCode() {
+  const reviewCode = useCallback(async () => {
     versionStore.saveSnapshot(code, language, 'Before review')
     try {
       const data = await getReview(code)
       setReview(data)
-    } catch (e) {
-      const status = e?.response?.status
-      const message =
-        e?.response?.data?.error ||
-        e?.response?.data ||
-        e?.message ||
-        'Request failed'
-      setReview(`## Review unavailable\n\n**Status:** ${status || 'Unknown'}\n\n${String(message)}`)
+    } catch (error) {
+      const { status, message } = getApiErrorMessage(error)
+      setReview(`## Review unavailable\n\n**Status:** ${status}\n\n${message}`)
     }
-  }
+  }, [code, language, versionStore])
 
-  // ── Run code ──────────────────────────────────────────────────────────
-  async function runCode() {
-    // Save snapshot before run
+  const runCode = useCallback(async () => {
     versionStore.saveSnapshot(code, language)
 
-    const res = await runCodeApi(code, language)
-    const lines = res.output || []
-    const stderr = res.stderr || []
-    setOutput(lines)
-
-    // Debug mode detection
-    const errDetected = (stderr.length > 0) || detectErrors(lines)
-    setHasError(errDetected)
-    setStderrLines(stderr.length > 0 ? stderr : lines.filter(l => detectErrors([l])))
-    setShowDebugPanel(false)
-    setFixResult(null)
-
-    // Also save snapshot for versioning with exit code label
-    if (res.exitCode !== undefined && res.exitCode !== 0) {
-      versionStore.saveSnapshot(code, language, `Run failed (exit ${res.exitCode})`)
-    }
-  }
-
-  // ── Apply AI prompt ───────────────────────────────────────────────────
-  async function applyPrompt() {
     try {
-      const res = await editCode(prompt, code)
-      const updated = typeof res === 'string' ? res : (res.text || '')
+      const result = await runCodeApi(code, language)
+      const lines = result.output || []
+      const stderr = result.stderr || []
+
+      setOutput(lines)
+      const errDetected = stderr.length > 0 || detectErrors(lines)
+      setHasError(errDetected)
+      setStderrLines(stderr.length > 0 ? stderr : lines.filter(line => detectErrors([line])))
+      setShowDebugPanel(false)
+      setFixResult(null)
+
+      if (result.exitCode !== undefined && result.exitCode !== 0) {
+        versionStore.saveSnapshot(code, language, `Run failed (exit ${result.exitCode})`)
+      }
+    } catch (error) {
+      const { status, message } = getApiErrorMessage(error, 'Execution failed')
+      setOutput([`Execution failed (status ${status}): ${message}`])
+      setHasError(true)
+      setStderrLines([message])
+    }
+  }, [code, language, versionStore])
+
+  const applyPrompt = useCallback(async () => {
+    try {
+      const result = await editCode(prompt, code)
+      const updated = typeof result === 'string' ? result : (result.text || '')
       setCode(extractCode(updated))
-    } catch (e) {
-      const status = e?.response?.status
-      const message =
-        e?.response?.data?.error ||
-        e?.response?.data ||
-        e?.message ||
-        'Request failed'
-      setOutput([`AI edit failed (status ${status || 'unknown'}): ${String(message)}`])
+    } catch (error) {
+      const { status, message } = getApiErrorMessage(error)
+      setOutput([`AI edit failed (status ${status}): ${message}`])
       setHasError(true)
     }
-  }
+  }, [code, prompt])
 
-  // ── Feature 4: Auto-fix with AI ──────────────────────────────────────
-  async function handleAutoFix() {
+  const handleAutoFix = useCallback(async () => {
     if (!stderrLines.length && !hasError) return
+
     setIsFixing(true)
     try {
       const errorOutput = stderrLines.join('\n') || output.join('\n')
       const result = await debugFix(code, errorOutput, language)
       setFixResult(result)
+
       if (result.fixedCode) {
         versionStore.saveSnapshot(code, language, 'Before AI fix')
         setCode(result.fixedCode)
         setHasError(false)
         setOutput([])
       }
-    } catch (e) {
-      const status = e?.response?.status
-      const message =
-        e?.response?.data?.error ||
-        e?.response?.data ||
-        e?.message ||
-        'Request failed'
-      setFixResult({ errorType: 'RequestError', explanation: `Fix failed (status ${status || 'unknown'}): ${String(message)}`, fixedCode: '' })
+    } catch (error) {
+      const { status, message } = getApiErrorMessage(error)
+      setFixResult({
+        errorType: 'RequestError',
+        explanation: `Fix failed (status ${status}): ${message}`,
+        fixedCode: '',
+      })
     } finally {
       setIsFixing(false)
     }
-  }
+  }, [code, hasError, language, output, stderrLines, versionStore])
 
-  // ── Feature 5: Visualize code ─────────────────────────────────────────
-  async function handleVisualize() {
+  const handleVisualize = useCallback(async () => {
     setIsVisualizing(true)
     setMermaidDiagram('')
     try {
       const diagram = await visualizeCode(code, language)
       setMermaidDiagram(diagram)
-    } catch (e) {
-      const status = e?.response?.status
-      const message =
-        e?.response?.data?.error ||
-        e?.response?.data ||
-        e?.message ||
-        'Request failed'
-      setMermaidDiagram(`flowchart TD\nA["Visualization unavailable (status ${status || 'unknown'})."]`)
+    } catch (error) {
+      const { status, message } = getApiErrorMessage(error)
+      setMermaidDiagram(`flowchart TD\nA["Visualization unavailable (status ${status})."]`)
       console.error('Visualize failed:', message)
     } finally {
       setIsVisualizing(false)
     }
-  }
+  }, [code, language])
 
-  // ── Feature 3: Restore a snapshot ────────────────────────────────────
-  function handleRestore(snapCode, snapLang) {
+  const handleRestore = useCallback((snapshotCode, snapshotLanguage) => {
     versionStore.saveSnapshot(code, language, 'Before restore')
-    setCode(snapCode)
-    setLanguage(snapLang)
+    setCode(snapshotCode)
+    setLanguage(snapshotLanguage)
     setOutput([])
     setHasError(false)
     setShowVersionPanel(false)
+  }, [code, language, versionStore])
+
+  if (view === 'landing' || !session?.token) {
+    return (
+      <>
+        <LandingPage
+          onLaunch={handleLaunchWorkspace}
+          onSignIn={() => openAuth('login')}
+          onSignUp={() => openAuth('register')}
+          session={session}
+          isBooting={authConfig.loading}
+        />
+        <AuthDialog
+          key={`landing-${authMode}`}
+          open={isAuthOpen}
+          mode={authMode}
+          authRequired={authRequired}
+          isSubmitting={isSubmittingAuth}
+          error={authError}
+          onClose={() => setIsAuthOpen(false)}
+          onModeChange={setAuthMode}
+          onSubmit={handleAuthSubmit}
+        />
+      </>
+    )
   }
 
-  // ── Landing page ──────────────────────────────────────────────────────
-  if (view === 'landing') {
-    return <LandingPage onLaunch={() => setView('desktop')} />
-  }
-
-  // ── Desktop (macOS style) ──────────────────────────────────────────────
   if (view === 'desktop') {
-    return <Desktop onLaunchEditor={() => setView('dashboard')} />
+    return (
+      <>
+        <Desktop onLaunchEditor={handleLaunchEditor} />
+        <AuthDialog
+          key={`desktop-${authMode}`}
+          open={isAuthOpen}
+          mode={authMode}
+          authRequired={authRequired}
+          isSubmitting={isSubmittingAuth}
+          error={authError}
+          onClose={() => setIsAuthOpen(false)}
+          onModeChange={setAuthMode}
+          onSubmit={handleAuthSubmit}
+        />
+      </>
+    )
   }
 
   return (
-    <div
-      className="h-screen bg-zinc-50 dark:bg-zinc-950 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black text-foreground flex flex-col font-sans selection:bg-primary/20 overflow-hidden"
-      style={{ animation: 'dashboard-enter 0.5s ease-out forwards' }}
-    >
-      <style>{`
-        @keyframes dashboard-enter {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+    <>
+      <div
+        className="h-screen bg-zinc-50 dark:bg-zinc-950 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black text-foreground flex flex-col font-sans selection:bg-primary/20 overflow-hidden"
+        style={{ animation: 'dashboard-enter 0.5s ease-out forwards' }}
+      >
+        <style>{`
+          @keyframes dashboard-enter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
-      {/* ── Topbar ─────────────────────────────────────────────────────── */}
-      <Topbar
-        brand="CodeNest"
-        language={language}
-        onLanguageChange={(lang, snippets) => {
-          setLanguage(lang)
-          setCode(snippets[lang])
-          setOutput([])
-          setHasError(false)
-          setStderrLines([])
-          setShowDebugPanel(false)
-          setFixResult(null)
-          setMermaidDiagram('')
-        }}
-        onReview={reviewCode}
-        snippets={SNIPPETS}
-        showLivePanel={showLivePanel}
-        onToggleLive={() => setShowLivePanel(v => !v)}
-        showProjectSidebar={showProjectSidebar}
-        onToggleProjects={() => setShowProjectSidebar(v => !v)}
-        showVersionPanel={showVersionPanel}
-        onToggleVersions={() => setShowVersionPanel(v => !v)}
-        isVisualizing={isVisualizing}
-        onVisualize={handleVisualize}
-        onGoHome={() => setView('landing')}
-      />
+        <Topbar
+          brand="CodeNest"
+          language={language}
+          onLanguageChange={(nextLanguage, snippets) => {
+            setLanguage(nextLanguage)
+            setCode(snippets[nextLanguage])
+            setOutput([])
+            setHasError(false)
+            setStderrLines([])
+            setShowDebugPanel(false)
+            setFixResult(null)
+            setMermaidDiagram('')
+          }}
+          onReview={reviewCode}
+          snippets={SNIPPETS}
+          showLivePanel={showLivePanel}
+          onToggleLive={() => setShowLivePanel(current => !current)}
+          showProjectSidebar={showProjectSidebar}
+          onToggleProjects={() => setShowProjectSidebar(current => !current)}
+          showVersionPanel={showVersionPanel}
+          onToggleVersions={() => setShowVersionPanel(current => !current)}
+          isVisualizing={isVisualizing}
+          onVisualize={handleVisualize}
+          onGoHome={() => setView('landing')}
+          session={session}
+          authRequired={authRequired}
+          onOpenAuth={() => openAuth('login')}
+          onLogout={handleLogout}
+        />
 
-      {/* ── Main Layout ───────────────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden min-h-0" style={{ height: 'calc(100vh - 65px)' }}>
+        <div className="flex flex-1 overflow-hidden min-h-0" style={{ height: 'calc(100vh - 65px)' }}>
+          {showProjectSidebar && (
+            <ProjectSidebar
+              store={projectStore}
+              onFileOpen={handleFileOpen}
+              onClose={() => setShowProjectSidebar(false)}
+            />
+          )}
 
-        {/* Feature 2: Project Sidebar */}
-        {showProjectSidebar && (
-          <ProjectSidebar
-            store={projectStore}
-            onFileOpen={handleFileOpen}
-            onClose={() => setShowProjectSidebar(false)}
-          />
-        )}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-4 p-4 lg:p-6 overflow-hidden min-h-0 min-w-0 max-h-full">
+            <EditorPanel
+              code={code}
+              setCode={setCode}
+              onRun={runCode}
+              language={language}
+            />
 
-        {/* Main editor area */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-4 p-4 lg:p-6 overflow-hidden min-h-0 min-w-0 max-h-full">
-          <EditorPanel
-            code={code}
-            setCode={setCode}
-            onRun={runCode}
-            language={language}
-          />
+            <ReviewPanel
+              review={review}
+              mermaidDiagram={mermaidDiagram}
+              isVisualizing={isVisualizing}
+            />
 
-          <ReviewPanel
-            review={review}
-            mermaidDiagram={mermaidDiagram}
-            isVisualizing={isVisualizing}
-          />
+            <div className="flex flex-col gap-3 overflow-hidden min-h-0">
+              <div className={`transition-all duration-300 flex flex-col overflow-hidden min-h-0 ${showDebugPanel ? 'flex-1' : 'h-full'}`}>
+                <TerminalPanel
+                  output={output}
+                  hasError={hasError}
+                  onDebug={() => setShowDebugPanel(true)}
+                />
+              </div>
 
-          {/* Terminal + Debug Panel stacked */}
-          <div className="flex flex-col gap-3 overflow-hidden min-h-0">
-            <div className={`transition-all duration-300 flex flex-col overflow-hidden min-h-0 ${showDebugPanel ? 'flex-1' : 'h-full'}`}>
-              <TerminalPanel
-                output={output}
-                hasError={hasError}
-                onDebug={() => setShowDebugPanel(true)}
-              />
+              {showDebugPanel && (
+                <DebugPanel
+                  debugInfo={hasError ? { errorLines: stderrLines.length ? stderrLines : output, code, language } : null}
+                  onAutoFix={handleAutoFix}
+                  onClose={() => {
+                    setShowDebugPanel(false)
+                    setFixResult(null)
+                  }}
+                  isFixing={isFixing}
+                  fixResult={fixResult}
+                />
+              )}
             </div>
-            {showDebugPanel && (
-              <DebugPanel
-                debugInfo={hasError ? { errorLines: stderrLines.length ? stderrLines : output, code, language } : null}
-                onAutoFix={handleAutoFix}
-                onClose={() => { setShowDebugPanel(false); setFixResult(null) }}
-                isFixing={isFixing}
-                fixResult={fixResult}
-              />
-            )}
+
+            <PromptPanel prompt={prompt} setPrompt={setPrompt} onApply={applyPrompt} />
           </div>
 
-          <PromptPanel prompt={prompt} setPrompt={setPrompt} onApply={applyPrompt} />
+          {showVersionPanel && (
+            <VersionTimeline
+              versions={versionStore.versions}
+              currentCode={code}
+              onRestore={handleRestore}
+              onExplainDiff={explainDiff}
+              onDelete={versionStore.deleteSnapshot}
+              onClear={versionStore.clearAll}
+              onLabel={versionStore.labelSnapshot}
+              onClose={() => setShowVersionPanel(false)}
+            />
+          )}
         </div>
 
-        {/* Feature 3: Version Timeline (right drawer) */}
-        {showVersionPanel && (
-          <VersionTimeline
-            versions={versionStore.versions}
-            currentCode={code}
-            onRestore={handleRestore}
-            onExplainDiff={explainDiff}
-            onDelete={versionStore.deleteSnapshot}
-            onClear={versionStore.clearAll}
-            onLabel={versionStore.labelSnapshot}
-            onClose={() => setShowVersionPanel(false)}
+        {showLivePanel && (
+          <LiveHintsPanel
+            hints={liveHints}
+            isLoading={isLiveLoading}
+            onClose={() => setShowLivePanel(false)}
           />
         )}
       </div>
 
-      {/* Feature 1: Live AI Hints Panel (floating overlay) */}
-      {showLivePanel && (
-        <LiveHintsPanel
-          hints={liveHints}
-          isLoading={isLiveLoading}
-          onClose={() => setShowLivePanel(false)}
-        />
-      )}
-    </div>
+      <AuthDialog
+        key={`dashboard-${authMode}`}
+        open={isAuthOpen}
+        mode={authMode}
+        authRequired={authRequired}
+        isSubmitting={isSubmittingAuth}
+        error={authError}
+        onClose={() => setIsAuthOpen(false)}
+        onModeChange={setAuthMode}
+        onSubmit={handleAuthSubmit}
+      />
+    </>
   )
 }
 

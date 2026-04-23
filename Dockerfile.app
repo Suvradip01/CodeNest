@@ -19,8 +19,10 @@ COPY Backend/ ./Backend/
 COPY --from=frontend-builder /app/frontend/dist ./Frontend/dist
 
 # Persistent projects folder
-RUN mkdir -p /app/Backend/projects && chmod 777 /app/Backend/projects
+RUN mkdir -p /app/Backend/projects \
+    && chown -R node:node /app
 
 WORKDIR /app/Backend
+USER node
 EXPOSE 3000
 CMD ["node", "server.js"]

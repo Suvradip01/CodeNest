@@ -1,121 +1,150 @@
-// useProjectStore — CRUD for projects/files persisted on the backend disk
-// Schema: { projects: [{ id, name, createdAt, files: [{ id, name, language, content }] }] }
-
 import { useState, useCallback, useEffect } from 'react'
 import {
   listProjects,
   createProjectApi,
+  renameProjectApi,
   saveFileApi,
+  renameFileApi,
   deleteFileApi,
-  deleteProjectApi
+  deleteProjectApi,
 } from '../services/api'
 
-export function useProjectStore() {
+export function useProjectStore({ enabled = true } = {}) {
   const [projects, setProjects] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(Boolean(enabled))
   const [activeProjectId, setActiveProjectId] = useState(null)
   const [activeFileId, setActiveFileId] = useState(null)
 
-  // Load projects from backend on mount
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true)
-      try {
-        const data = await listProjects()
-        setProjects(data)
-      } catch (err) {
-        console.error('Failed to load projects:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    load()
+  const reset = useCallback(() => {
+    setProjects([])
+    setActiveProjectId(null)
+    setActiveFileId(null)
+    setIsLoading(false)
   }, [])
 
-  // ── Projects ──────────────────────────────────────────────────────────────
-  const createProject = useCallback(async (name) => {
-    try {
-      const newProject = await createProjectApi(name)
-      setProjects(prev => [...prev, newProject])
-      setActiveProjectId(newProject.id)
-      setActiveFileId(null)
-      return newProject
-    } catch (err) {
-      console.error('Failed to create project:', err)
+  const reloadProjects = useCallback(async () => {
+    if (!enabled) {
+      reset()
+      return []
     }
-  }, [])
 
-  const deleteProject = useCallback(async (projectId) => {
+    setIsLoading(true)
     try {
-      await deleteProjectApi(projectId)
-      setProjects(prev => prev.filter(p => p.id !== projectId))
-      if (activeProjectId === projectId) {
+      const data = await listProjects()
+      setProjects(data)
+
+      if (activeProjectId && !data.some(project => project.id === activeProjectId)) {
         setActiveProjectId(null)
         setActiveFileId(null)
       }
+
+      return data
     } catch (err) {
-      console.error('Failed to delete project:', err)
+      console.error('Failed to load projects:', err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [activeProjectId, enabled, reset])
+
+  useEffect(() => {
+    if (!enabled) {
+      reset()
+      return
+    }
+
+    reloadProjects().catch(() => {})
+  }, [enabled, reloadProjects, reset])
+
+  const createProject = useCallback(async (name) => {
+    const newProject = await createProjectApi(name)
+    setProjects(prev => [...prev, newProject])
+    setActiveProjectId(newProject.id)
+    setActiveFileId(null)
+    return newProject
+  }, [])
+
+  const renameProject = useCallback(async (projectId, nextName) => {
+    const renamed = await renameProjectApi(projectId, nextName)
+    setProjects(prev => prev.map(project => (
+      project.id === projectId ? { ...project, name: renamed.name, updatedAt: renamed.updatedAt } : project
+    )))
+    return renamed
+  }, [])
+
+  const deleteProject = useCallback(async (projectId) => {
+    await deleteProjectApi(projectId)
+    setProjects(prev => prev.filter(project => project.id !== projectId))
+    if (activeProjectId === projectId) {
+      setActiveProjectId(null)
+      setActiveFileId(null)
     }
   }, [activeProjectId])
 
-  // ── Files ─────────────────────────────────────────────────────────────────
   const createFile = useCallback(async (projectId, name, language = 'javascript', content = '') => {
-    try {
-      const project = projects.find(p => p.id === projectId)
-      if (!project) return
-
-      // Append extension if missing
-      let fileName = name
-      if (!fileName.includes('.')) {
-        if (language === 'python') fileName += '.py'
-        else if (language === 'java') fileName += '.java'
-        else if (language === 'c') fileName += '.c'
-        else fileName += '.js'
-      }
-
-      const newFile = await saveFileApi(projectId, fileName, content)
-      setProjects(prev => prev.map(p =>
-        p.id === projectId ? { ...p, files: [...p.files, newFile] } : p
-      ))
-      setActiveFileId(newFile.id)
-      return newFile
-    } catch (err) {
-      console.error('Failed to create file:', err)
+    let fileName = name
+    if (!fileName.includes('.')) {
+      if (language === 'python') fileName += '.py'
+      else if (language === 'java') fileName += '.java'
+      else if (language === 'c') fileName += '.c'
+      else fileName += '.js'
     }
-  }, [projects])
+
+    const newFile = await saveFileApi(projectId, fileName, content)
+    setProjects(prev => prev.map(project => (
+      project.id === projectId ? { ...project, files: [...project.files, newFile] } : project
+    )))
+    setActiveProjectId(projectId)
+    setActiveFileId(newFile.id)
+    return newFile
+  }, [])
+
+  const renameFile = useCallback(async (projectId, fileId, nextName) => {
+    const renamed = await renameFileApi(projectId, fileId, nextName)
+    setProjects(prev => prev.map(project => (
+      project.id === projectId
+        ? {
+            ...project,
+            files: project.files.map(file => (
+              file.id === fileId
+                ? { ...file, name: renamed.name, language: renamed.language, updatedAt: renamed.updatedAt }
+                : file
+            )),
+          }
+        : project
+    )))
+    return renamed
+  }, [])
 
   const deleteFile = useCallback(async (projectId, fileId) => {
-    try {
-      await deleteFileApi(projectId, fileId)
-      setProjects(prev => prev.map(p =>
-        p.id === projectId ? { ...p, files: p.files.filter(f => f.id !== fileId) } : p
-      ))
-      if (activeFileId === fileId) {
-        setActiveFileId(null)
-      }
-    } catch (err) {
-      console.error('Failed to delete file:', err)
+    await deleteFileApi(projectId, fileId)
+    setProjects(prev => prev.map(project => (
+      project.id === projectId
+        ? { ...project, files: project.files.filter(file => file.id !== fileId) }
+        : project
+    )))
+    if (activeFileId === fileId) {
+      setActiveFileId(null)
     }
   }, [activeFileId])
 
   const updateFileContent = useCallback(async (projectId, fileId, content) => {
-    try {
-      // Opt-out: we only save to disk, we don't need a response for the UI update usually
-      // to keep it fast, but we should update local state
-      setProjects(prev => prev.map(p =>
-        p.id === projectId
-          ? { ...p, files: p.files.map(f => f.id === fileId ? { ...f, content } : f) }
-          : p
-      ))
-      await saveFileApi(projectId, fileId, content)
-    } catch (err) {
-      console.error('Failed to update file content:', err)
-    }
+    setProjects(prev => prev.map(project => (
+      project.id === projectId
+        ? {
+            ...project,
+            files: project.files.map(file => (
+              file.id === fileId ? { ...file, content } : file
+            )),
+          }
+        : project
+    )))
+
+    await saveFileApi(projectId, fileId, content)
   }, [])
 
-  // ── Selectors ─────────────────────────────────────────────────────────────
-  const activeProject = projects.find(p => p.id === activeProjectId) || null
-  const activeFile = activeProject?.files.find(f => f.id === activeFileId) || null
+  const activeProject = projects.find(project => project.id === activeProjectId) || null
+  const activeFile = activeProject?.files.find(file => file.id === activeFileId) || null
 
   return {
     projects,
@@ -126,11 +155,14 @@ export function useProjectStore() {
     isLoading,
     setActiveProjectId,
     setActiveFileId,
+    reloadProjects,
+    reset,
     createProject,
+    renameProject,
     deleteProject,
     createFile,
+    renameFile,
     deleteFile,
     updateFileContent,
   }
 }
-
