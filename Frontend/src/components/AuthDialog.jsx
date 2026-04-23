@@ -141,38 +141,100 @@ export default function AuthDialog({
           {/* Toggle Slider */}
           <div className="relative mb-8 p-1 bg-zinc-900/50 rounded-2xl border border-white/5 flex">
             <div 
-              className="absolute h-[calc(100%-8px)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] bg-white rounded-xl shadow-lg"
+              className="absolute h-[calc(100%-8px)] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] bg-white rounded-xl shadow-lg"
               style={{
                 width: 'calc(50% - 4px)',
                 left: isRegister ? 'calc(50% + 4px)' : '4px'
               }}
             />
             <button
+              type="button"
               onClick={() => { setLocalError(''); onModeChange?.('login') }}
-              className={`relative z-10 flex-1 py-2.5 text-sm font-bold transition-colors duration-300 ${!isRegister ? 'text-black' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`relative z-10 flex-1 py-2.5 text-sm font-bold transition-colors duration-500 ${!isRegister ? 'text-black' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
               Sign In
             </button>
             <button
+              type="button"
               onClick={() => { setLocalError(''); onModeChange?.('register') }}
-              className={`relative z-10 flex-1 py-2.5 text-sm font-bold transition-colors duration-300 ${isRegister ? 'text-black' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`relative z-10 flex-1 py-2.5 text-sm font-bold transition-colors duration-500 ${isRegister ? 'text-black' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
               Create Account
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field (Animated Height) */}
-            <div className={`field-transition ${isRegister ? 'open' : ''}`}>
-              <div className="overflow-hidden">
+          {/* Sliding Form Container */}
+          <div className="relative overflow-hidden">
+            <div 
+              className="flex transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{ 
+                width: '200%', 
+                transform: `translateX(${isRegister ? '-50%' : '0%'})` 
+              }}
+            >
+              {/* Login Form */}
+              <form onSubmit={handleSubmit} className="w-1/2 space-y-4 pr-4">
+                <label className="block">
+                  <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                    <Mail className="h-3 w-3" />
+                    Email Address
+                  </span>
+                  <input
+                    id="auth-email-login"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange('email')}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
+                    required={!isRegister}
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                    <LockKeyhole className="h-3 w-3" />
+                    Secure Password
+                  </span>
+                  <input
+                    id="auth-password-login"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange('password')}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
+                    required={!isRegister}
+                  />
+                </label>
+
+                {displayError && !isRegister && (
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-400">
+                    {displayError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-4 text-sm font-black text-black transition-all hover:bg-indigo-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                >
+                  <span className="relative z-10">{isSubmitting ? 'Authenticating...' : 'Sign In To Workspace'}</span>
+                  <ArrowRight className="h-4 w-4 relative z-10 transition-transform group-hover:translate-x-1" />
+                </button>
+              </form>
+
+              {/* Register Form */}
+              <form onSubmit={handleSubmit} className="w-1/2 space-y-4 pl-4">
                 <label className="block">
                   <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
                     <User2 className="h-3 w-3" />
                     Full Name
                   </span>
                   <input
-                    id="auth-name"
+                    id="auth-name-reg"
                     name="name"
                     value={form.name}
                     onChange={handleChange('name')}
@@ -182,60 +244,60 @@ export default function AuthDialog({
                     required={isRegister}
                   />
                 </label>
-              </div>
+
+                <label className="block">
+                  <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                    <Mail className="h-3 w-3" />
+                    Email Address
+                  </span>
+                  <input
+                    id="auth-email-reg"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange('email')}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
+                    required={isRegister}
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
+                    <LockKeyhole className="h-3 w-3" />
+                    Secure Password
+                  </span>
+                  <input
+                    id="auth-password-reg"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange('password')}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
+                    required={isRegister}
+                  />
+                </label>
+
+                {displayError && isRegister && (
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-400">
+                    {displayError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-4 text-sm font-black text-black transition-all hover:bg-indigo-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                >
+                  <span className="relative z-10">{isSubmitting ? 'Authenticating...' : 'Create My Account'}</span>
+                  <ArrowRight className="h-4 w-4 relative z-10 transition-transform group-hover:translate-x-1" />
+                </button>
+              </form>
             </div>
-
-            <label className="block">
-              <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
-                <Mail className="h-3 w-3" />
-                Email Address
-              </span>
-              <input
-                id="auth-email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange('email')}
-                placeholder="you@example.com"
-                autoComplete="email"
-                className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
-                required
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
-                <LockKeyhole className="h-3 w-3" />
-                Secure Password
-              </span>
-              <input
-                id="auth-password"
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange('password')}
-                placeholder="••••••••"
-                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                className="w-full rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3.5 text-sm text-white placeholder:text-zinc-700 outline-none transition focus:border-indigo-500/50 focus:bg-zinc-900/80"
-                required
-              />
-            </label>
-
-            {displayError && (
-              <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-medium text-rose-400 animate-in fade-in slide-in-from-top-2 duration-300">
-                {displayError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-4 text-sm font-black text-black transition-all hover:bg-indigo-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
-            >
-              <span className="relative z-10">{isSubmitting ? 'Authenticating...' : isRegister ? 'Create My Account' : 'Sign In To Workspace'}</span>
-              <ArrowRight className="h-4 w-4 relative z-10 transition-transform group-hover:translate-x-1" />
-            </button>
-          </form>
+          </div>
 
           {/* Footer Text */}
           <p className="mt-8 text-center text-[10px] text-zinc-600 uppercase tracking-[0.1em]">
