@@ -21,6 +21,7 @@ export default function Topbar({
   showProjectSidebar, onToggleProjects,
   showVersionPanel, onToggleVersions,
   isVisualizing, onVisualize,
+  onGoHome,
 }) {
   const { theme, setTheme } = useTheme()
   const [isLangOpen, setIsLangOpen] = useState(false)
@@ -54,7 +55,10 @@ export default function Topbar({
       `}} />
 
       {/* Brand */}
-      <div className="flex items-center gap-3 group cursor-pointer selection:bg-transparent shrink-0">
+      <div 
+        onClick={onGoHome}
+        className="flex items-center gap-3 group cursor-pointer selection:bg-transparent shrink-0 hover:opacity-80 transition-opacity"
+      >
         <div className="relative p-2.5 bg-gradient-to-br from-violet-500/10 to-blue-500/10 dark:from-violet-500/20 dark:to-blue-500/20 rounded-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden shadow-inner">
           <Code2 className="h-5 w-5 text-violet-600 dark:text-violet-400 animate-[float-icon_3s_ease-in-out_infinite]" />
         </div>

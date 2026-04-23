@@ -292,6 +292,7 @@ function App() {
         onToggleVersions={() => setShowVersionPanel(v => !v)}
         isVisualizing={isVisualizing}
         onVisualize={handleVisualize}
+        onGoHome={() => setView('landing')}
       />
 
       {/* ── Main Layout ───────────────────────────────────────────────── */}
