@@ -87,7 +87,7 @@ export default function LandingPage({ onLaunch }) {
         <div className="flex items-center gap-6">
 
           <button onClick={launch} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors duration-200">
-            Open editor <ChevronRight className="w-3.5 h-3.5" />
+            Start Session <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </nav>
@@ -123,14 +123,15 @@ export default function LandingPage({ onLaunch }) {
 
         {/* ── CTA ─── white on black, clean ───────────────── */}
         <div className="flex flex-col sm:flex-row items-center gap-4 mb-20" style={{ animation: 'land-up 0.5s ease-out 0.3s both' }}>
-          <button
-            onClick={launch}
-            className="group flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-white text-black text-sm font-bold hover:bg-zinc-100 active:scale-[0.98] transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.1)] hover:shadow-[0_4px_24px_rgba(255,255,255,0.12)]"
-          >
-            <Terminal className="w-4 h-4 text-indigo-600" />
-            Launch Editor
-            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </button>
+            <button 
+              onClick={launch}
+              className="group relative flex items-center gap-2.5 px-8 py-4 bg-white text-black rounded-xl font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_50px_rgba(255,255,255,0.15)] overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/[0.05] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <Code2 className="w-5 h-5 text-indigo-600" />
+              <span>Enter Workspace</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
           <span className="flex items-center gap-2 text-xs text-zinc-600">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70 animate-pulse" />
             No account · Runs in your browser
@@ -144,7 +145,7 @@ export default function LandingPage({ onLaunch }) {
             <span className="w-3 h-3 rounded-full bg-zinc-800" />
             <span className="w-3 h-3 rounded-full bg-zinc-800" />
             <span className="w-3 h-3 rounded-full bg-zinc-800" />
-            <span className="ml-4 text-[11px] text-zinc-600 font-mono">main.js — CodeNest</span>
+            <span className="ml-4 text-[11px] text-zinc-600 font-mono">system_init.js — CodeNest</span>
           </div>
           <div className="p-5 font-mono text-[13px] leading-7 text-left space-y-0.5 select-none">
             {CODE_LINES.map((line, i) => (

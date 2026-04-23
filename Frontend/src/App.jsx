@@ -6,6 +6,7 @@ import { ThemeProvider, useTheme } from './components/theme-provider'
 
 // ── Existing modular UI components ────────────────────────────────────────
 import LandingPage from './components/LandingPage'
+import Desktop from './components/Desktop'
 import Topbar from './components/Topbar'
 import EditorPanel from './components/EditorPanel'
 import ReviewPanel from './components/ReviewPanel'
@@ -253,7 +254,12 @@ function App() {
 
   // ── Landing page ──────────────────────────────────────────────────────
   if (view === 'landing') {
-    return <LandingPage onLaunch={() => setView('dashboard')} />
+    return <LandingPage onLaunch={() => setView('desktop')} />
+  }
+
+  // ── Desktop (macOS style) ──────────────────────────────────────────────
+  if (view === 'desktop') {
+    return <Desktop onLaunchEditor={() => setView('dashboard')} />
   }
 
   return (
