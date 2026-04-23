@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    volumes:
+      - codenest-projects:/app/Backend/projects
+    depends_on:
+      - runner
+    restart: always
+    networks:
+      - backend
+
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    # Security: No public ports
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    # Security: Isolated network
+    networks:
+      - backend
+    # Security: Lock down the container
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  codenest-projects:
+    driver: local

@@ -4,6 +4,8 @@ const projectRoutes = require('./routes/project.routes')
 const cors = require('cors')
 const aiServices = require('./services/ai.services')
 
+const path = require('path')
+
 const app = express()
 
 // Allow requests from the frontend
@@ -12,7 +14,19 @@ app.use(cors())
 // Parse JSON bodies
 app.use(express.json())
 
-app.get('/', (req, res) => { res.send('CodeNest Backend — Running') })
+// Serve static frontend files in production
+app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
+
+app.get('/', (req, res) => {
+    // If we're in production and the file exists, send index.html
+    const indexPath = path.join(__dirname, '../../Frontend/dist/index.html')
+    const fs = require('fs')
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath)
+    } else {
+        res.send('CodeNest Backend — Running (Frontend not built)')
+    }
+})
 
 // ─── Project Management Endpoints (Disk-based) ─────────────────────────────
 app.use('/projects', projectRoutes)
@@ -85,80 +99,26 @@ app.post('/ai/visualize', async (req, res) => {
     }
 })
 
-// ─── Code Execution Local Runner ────────────────────────────────────────
+// ─── Code Execution Runner (Isolated Service) ────────────────────────
 app.post('/code/run', async (req, res) => {
-    const code = req.body.code
-    const lang = String(req.body.language || 'javascript').toLowerCase()
-
+    const { code, language } = req.body
     if (!code) return res.status(400).send('Code is required')
 
-    const { exec } = require('child_process');
-    const fs = require('fs');
-    const path = require('path');
-    const os = require('os');
-
     try {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codenest-'));
-        let cmd = '';
-        let filename = '';
+        const axios = require('axios')
+        // We call the 'runner' service which is isolated in docker-compose
+        const response = await axios.post('http://runner:3001/run', {
+            code,
+            language: language || 'javascript'
+        }, { timeout: 10000 })
 
-        if (lang === 'javascript') {
-            filename = 'index.js';
-            fs.writeFileSync(path.join(tempDir, filename), code);
-            cmd = `node ${filename}`;
-        } else if (lang === 'python') {
-            filename = 'script.py';
-            fs.writeFileSync(path.join(tempDir, filename), code);
-            // In Windows usually `python`, in Linux/Mac `python3`
-            cmd = os.platform() === 'win32' ? `python ${filename}` : `python3 ${filename} || python ${filename}`;
-        } else if (lang === 'java') {
-            filename = 'Main.java';
-            fs.writeFileSync(path.join(tempDir, filename), code);
-            cmd = `javac Main.java && java Main`;
-        } else if (lang === 'c') {
-            filename = 'main.c';
-            fs.writeFileSync(path.join(tempDir, filename), code);
-            cmd = os.platform() === 'win32' ? `gcc main.c -o main.exe && main.exe` : `gcc main.c -o main && ./main`;
-        } else {
-            filename = 'index.js';
-            fs.writeFileSync(path.join(tempDir, filename), code);
-            cmd = `node ${filename}`;
-        }
-
-        exec(cmd, { cwd: tempDir, timeout: 10000 }, (error, stdout, stderr) => {
-            // Clean up async to avoid blocking
-            fs.rm(tempDir, { recursive: true, force: true }, () => {});
-
-            let exitCode = 0;
-            if (error) {
-                exitCode = error.code || 1;
-            }
-
-            const stdoutLines = stdout ? String(stdout).split(/\r?\n/) : [];
-            const stderrLines = stderr ? String(stderr).split(/\r?\n/) : [];
-            
-            // If there's an error but no stderr, add the error message
-            if (error && stderrLines.filter(l => l.trim().length > 0).length === 0) {
-                stderrLines.push(error.message);
-            }
-
-            const output = [...stdoutLines, ...stderrLines].filter(line => line.length > 0);
-            if (output.length === 0 && exitCode !== 0) {
-                output.push(`Process exited with code ${exitCode}`);
-            }
-
-            res.json({
-                output,
-                stderr: stderrLines.filter(l => l.length > 0),
-                exitCode
-            });
-        });
-    } catch (error) {
-        console.error('Execution Error:', error)
-        res.status(200).json({
-            output: ['Execution failed locally.'],
-            stderr: [error?.message || String(error)],
-            exitCode: 1,
+        res.json(response.data)
+    } catch (err) {
+        console.error('Execution Service Error:', err.message)
+        res.status(500).json({
+            output: ['Code execution service is currently unavailable.'],
+            stderr: [err.message],
+            exitCode: 1
         })
     }
 })

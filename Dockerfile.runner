@@ -1,0 +1,18 @@
+# Stage 1: Runner (The "Worker")
+FROM node:20-alpine
+WORKDIR /app
+
+# Install all necessary compilers
+RUN apk add --no-cache python3 g++ gcc make openjdk17-jre
+
+# Copy runner logic
+COPY Runner/package*.json ./
+RUN npm install --production
+COPY Runner/ ./
+
+# Run as non-root for security
+# RUN addgroup -S runner && adduser -S runner -G runner
+# USER runner
+
+EXPOSE 3001
+CMD ["node", "server.js"]

@@ -1,0 +1,43 @@
+name: CodeNest CI/CD (Industry Grade)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install & Build Frontend
+      run: |
+        cd Frontend
+        npm install
+        npm run build
+
+    - name: Build Docker Images (Validate)
+      run: |
+        docker compose build
+
+    # Example of a deployment step via SSH
+    # - name: Deploy to VPS
+    #   if: github.ref == 'refs/heads/main'
+    #   uses: appleboy/ssh-action@v1.0.3
+    #   with:
+    #     host: ${{ secrets.HOST }}
+    #     username: ${{ secrets.USERNAME }}
+    #     key: ${{ secrets.SSH_KEY }}
+    #     script: |
+    #       cd /opt/codenest
+    #       git pull origin main
+    #       docker compose down
+    #       docker compose up -d --build

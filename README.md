@@ -11,17 +11,22 @@ CodeNest is a next-generation, high-performance web-based IDE that combines trad
 - **Live AI Review:** Analyzes your code logic in real-time, identifying potential bugs, security vulnerabilities, and optimization opportunities.
 - **Visual Code Flow:** Automatically generates interactive Mermaid.js diagrams to visualize your code's execution path and architecture.
 
-### 2. **Professional Project Management**
-- **Disk-Based Persistence:** Unlike traditional web IDEs that use browser storage, CodeNest persists your projects directly to the server's disk using Node.js.
+### 2. **Industry-Grade Security (Isolated Runner)**
+- **Sandboxed Execution:** Code execution is moved to a separate, isolated Docker container (`runner`) that has no network access.
+- **Resource Throttling:** Mandatory 5-second timeouts and strict CPU/Memory limits (0.5 CPU, 256MB RAM) prevent resource abuse.
+- **Microservices Architecture:** The main web server is stripped of all compilers, making it more secure and lightweight.
+
+### 3. **Professional Project Management**
+- **Disk-Based Persistence:** Unlike traditional web IDEs that use browser storage, CodeNest persists your projects directly to a Docker volume.
 - **Multi-File Support:** Create complex folder structures and switch between files seamlessly.
 - **ZIP Export:** Download your entire project as a production-ready `.zip` archive.
 
-### 3. **Advanced Developer Tools**
+### 4. **Advanced Developer Tools**
 - **Time-Travel Snapshots:** Automatically saves snapshots of your code. View historical versions and perform **side-by-side diff analysis** to see exactly what changed.
 - **AI Debug Mode:** When code execution fails, the AI analyzes the terminal output and suggests an automated fix.
 - **Interactive Visualization:** High-quality PNG exports and interactive zoom/pan for architectural diagrams.
 
-### 4. **Modern UI/UX**
+### 5. **Modern UI/UX**
 - **Glassmorphism Design:** A stunning, premium interface built with Tailwind CSS 4, featuring backdrop blurs and subtle micro-animations.
 - **Adaptive Themes:** Full dark/light mode support with reactive components that adjust their appearance dynamically.
 
