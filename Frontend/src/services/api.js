@@ -1,7 +1,11 @@
 import axios from 'axios'
 
 // API service layer: encapsulates HTTP calls to the backend
-const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api'
+let rawBase = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+if (rawBase && !rawBase.startsWith('http')) {
+  rawBase = 'https://' + rawBase
+}
+const BASE = rawBase + '/api'
 console.log("[CodeNest] Connecting to Backend at:", BASE)
 
 // ── Existing endpoints ─────────────────────────────────────────────────────
