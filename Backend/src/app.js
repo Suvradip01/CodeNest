@@ -2,7 +2,14 @@ const express = require('express')
 const aiRoutes = require('./routes/ai.routes')
 const projectRoutes = require('./routes/project.routes')
 const cors = require('cors')
+const mongoose = require('mongoose')
 const aiServices = require('./services/ai.services')
+
+// Connect to MongoDB Atlas
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/codenest'
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log('Connected to MongoDB Atlas'))
+    .catch(err => console.error('MongoDB connection error:', err))
 
 const path = require('path')
 

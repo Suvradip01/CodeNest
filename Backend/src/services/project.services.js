@@ -1,89 +1,77 @@
-const fs = require('fs-extra');
-const path = require('path');
+const Project = require('../models/Project');
 const archiver = require('archiver');
 
-const PROJECTS_DIR = path.join(__dirname, '../../projects');
-
-// Ensure projects directory exists
-fs.ensureDirSync(PROJECTS_DIR);
-
 /**
- * Get all projects and their files from disk
+ * Get all projects and their files from MongoDB
  */
 async function listProjects() {
-    const projectNames = await fs.readdir(PROJECTS_DIR);
-    const projects = [];
-
-    for (const name of projectNames) {
-        const projectPath = path.join(PROJECTS_DIR, name);
-        const stats = await fs.stat(projectPath);
-
-        if (stats.isDirectory()) {
-            const fileNames = await fs.readdir(projectPath);
-            const files = [];
-
-            for (const fileName of fileNames) {
-                if (fileName === '.metadata.json') continue;
-                
-                const filePath = path.join(projectPath, fileName);
-                const fileStats = await fs.stat(filePath);
-
-                if (fileStats.isFile()) {
-                    const content = await fs.readFile(filePath, 'utf8');
-                    // Detect language from extension
-                    const ext = path.extname(fileName).toLowerCase();
-                    let language = 'javascript';
-                    if (ext === '.py') language = 'python';
-                    if (ext === '.java') language = 'java';
-                    if (ext === '.c') language = 'c';
-
-                    files.push({
-                        id: fileName, // Use filename as ID for simplicity
-                        name: fileName,
-                        language,
-                        content,
-                        createdAt: fileStats.birthtimeMs
-                    });
-                }
-            }
-
-            projects.push({
-                id: name,
-                name: name,
-                createdAt: stats.birthtimeMs,
-                files
-            });
-        }
-    }
-
-    return projects;
+    const projects = await Project.find().sort({ updatedAt: -1 });
+    
+    // Map to the format expected by the frontend
+    return projects.map(p => ({
+        id: p._id,
+        name: p.name,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        files: p.files.map(f => ({
+            id: f._id,
+            name: f.name,
+            content: f.content,
+            language: f.language,
+            updatedAt: f.updatedAt
+        }))
+    }));
 }
 
 /**
- * Create a new project folder
+ * Create a new project in MongoDB
  */
 async function createProject(name) {
-    const projectPath = path.join(PROJECTS_DIR, name);
-    await fs.ensureDir(projectPath);
-    return { id: name, name, createdAt: Date.now(), files: [] };
+    const project = new Project({ name, files: [] });
+    await project.save();
+    return {
+        id: project._id,
+        name: project.name,
+        createdAt: project.createdAt,
+        files: []
+    };
 }
 
 /**
  * Save/Update a file in a project
  */
 async function saveFile(projectName, fileName, content) {
-    const projectPath = path.join(PROJECTS_DIR, projectName);
-    await fs.ensureDir(projectPath);
+    const project = await Project.findOne({ name: projectName });
+    if (!project) throw new Error('Project not found');
+
+    let file = project.files.find(f => f.name === fileName);
     
-    const filePath = path.join(projectPath, fileName);
-    await fs.writeFile(filePath, content, 'utf8');
+    // Detect language from extension
+    const path = require('path');
+    const ext = path.extname(fileName).toLowerCase();
+    let language = 'javascript';
+    if (ext === '.py') language = 'python';
+    if (ext === '.java') language = 'java';
+    if (ext === '.c') language = 'c';
+
+    if (file) {
+        file.content = content;
+        file.language = language;
+        file.updatedAt = Date.now();
+    } else {
+        project.files.push({ name: fileName, content, language });
+    }
+
+    project.updatedAt = Date.now();
+    await project.save();
     
-    const stats = await fs.stat(filePath);
+    const updatedFile = project.files.find(f => f.name === fileName);
     return {
-        id: fileName,
-        name: fileName,
-        content,
-        createdAt: stats.birthtimeMs
+        id: updatedFile._id,
+        name: updatedFile.name,
+        content: updatedFile.content,
+        language: updatedFile.language,
+        updatedAt: updatedFile.updatedAt
     };
 }
 
@@ -91,29 +79,39 @@ async function saveFile(projectName, fileName, content) {
  * Delete a file
  */
 async function deleteFile(projectName, fileName) {
-    const filePath = path.join(PROJECTS_DIR, projectName, fileName);
-    await fs.remove(filePath);
+    const project = await Project.findOne({ name: projectName });
+    if (!project) return;
+
+    project.files = project.files.filter(f => f.name !== fileName);
+    project.updatedAt = Date.now();
+    await project.save();
 }
 
 /**
  * Delete a project
  */
 async function deleteProject(projectName) {
-    const projectPath = path.join(PROJECTS_DIR, projectName);
-    await fs.remove(projectPath);
+    await Project.deleteOne({ name: projectName });
 }
 
 /**
- * Zip a project for download
+ * Zip a project for download (Generated from MongoDB data)
  */
-function zipProject(projectName, outStream) {
-    const projectPath = path.join(PROJECTS_DIR, projectName);
+async function zipProject(projectName, outStream) {
+    const project = await Project.findOne({ name: projectName });
+    if (!project) throw new Error('Project not found');
+
     const archive = archiver('zip', { zlib: { level: 9 } });
 
     archive.on('error', (err) => { throw err; });
     archive.pipe(outStream);
-    archive.directory(projectPath, false);
-    archive.finalize();
+
+    // Add each file from the database to the archive
+    project.files.forEach(file => {
+        archive.append(file.content, { name: file.name });
+    });
+
+    await archive.finalize();
 }
 
 module.exports = {
