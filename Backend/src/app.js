@@ -100,6 +100,35 @@ app.post(['/api/code/run', '/code/run'], async (req, res) => {
 
         res.json(response.data)
     } catch (err) {
+        // Fallback for JavaScript if the runner is unavailable
+        if (language === 'javascript' || !language) {
+            console.log('Runner unavailable, attempting local JS execution...');
+            const { spawn } = require('child_process');
+            const child = spawn('node', ['-e', code]);
+            
+            let output = '';
+            let stderr = '';
+            
+            child.stdout.on('data', (data) => output += data.toString());
+            child.stderr.on('data', (data) => stderr += data.toString());
+            
+            const result = await new Promise((resolve) => {
+                child.on('close', (code) => {
+                    resolve({
+                        output: output.split('\n').filter(l => l),
+                        stderr: stderr.split('\n').filter(l => l),
+                        exitCode: code
+                    });
+                });
+                // Safety timeout
+                setTimeout(() => {
+                    child.kill();
+                    resolve({ output: [output], stderr: ['Execution timed out'], exitCode: 124 });
+                }, 5000);
+            });
+            return res.json(result);
+        }
+
         console.error('Execution Service Error:', err.message)
         res.status(500).json({
             output: ['Code execution service is currently unavailable.'],

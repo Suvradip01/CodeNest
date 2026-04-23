@@ -40,8 +40,8 @@ async function createProject(name) {
 /**
  * Save/Update a file in a project
  */
-async function saveFile(projectName, fileName, content) {
-    const project = await Project.findOne({ name: projectName });
+async function saveFile(projectId, fileName, content) {
+    const project = await Project.findById(projectId);
     if (!project) throw new Error('Project not found');
 
     let file = project.files.find(f => f.name === fileName);
@@ -78,8 +78,8 @@ async function saveFile(projectName, fileName, content) {
 /**
  * Delete a file
  */
-async function deleteFile(projectName, fileName) {
-    const project = await Project.findOne({ name: projectName });
+async function deleteFile(projectId, fileName) {
+    const project = await Project.findById(projectId);
     if (!project) return;
 
     project.files = project.files.filter(f => f.name !== fileName);
@@ -90,15 +90,15 @@ async function deleteFile(projectName, fileName) {
 /**
  * Delete a project
  */
-async function deleteProject(projectName) {
-    await Project.deleteOne({ name: projectName });
+async function deleteProject(projectId) {
+    await Project.deleteOne({ _id: projectId });
 }
 
 /**
  * Zip a project for download (Generated from MongoDB data)
  */
-async function zipProject(projectName, outStream) {
-    const project = await Project.findOne({ name: projectName });
+async function zipProject(projectId, outStream) {
+    const project = await Project.findById(projectId);
     if (!project) throw new Error('Project not found');
 
     const archive = archiver('zip', { zlib: { level: 9 } });
