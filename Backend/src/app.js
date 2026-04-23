@@ -21,13 +21,13 @@ app.use(cors())
 // Parse JSON bodies
 app.use(express.json())
 
-// ─── API Routes with /api prefix ──────────────────────────────────────────
-app.use('/api/projects', projectRoutes)
+// ─── API Routes (Supporting both /api prefix and legacy paths) ──────────
+app.use(['/api/projects', '/projects'], projectRoutes)
 
-app.post('/api/ai/get-review', aiRoutes.getReview)
-app.post('/api/ai/edit-code', aiRoutes.editCode)
+app.post(['/api/ai/get-review', '/ai/get-review'], aiRoutes.getReview)
+app.post(['/api/ai/edit-code', '/ai/edit-code'], aiRoutes.editCode)
 
-app.post('/api/ai/live-check', async (req, res) => {
+app.post(['/api/ai/live-check', '/ai/live-check'], async (req, res) => {
     const { code, language } = req.body
     if (!code || !code.trim()) return res.json({ warnings: [], suggestions: [], complexity: 'Simple' })
     try {
@@ -42,7 +42,7 @@ app.post('/api/ai/live-check', async (req, res) => {
     }
 })
 
-app.post('/api/ai/explain-diff', async (req, res) => {
+app.post(['/api/ai/explain-diff', '/ai/explain-diff'], async (req, res) => {
     const { oldCode, newCode } = req.body
     if (!oldCode || !newCode) return res.status(400).json({ error: 'oldCode and newCode required' })
     try {
@@ -57,7 +57,7 @@ app.post('/api/ai/explain-diff', async (req, res) => {
     }
 })
 
-app.post('/api/ai/debug-fix', async (req, res) => {
+app.post(['/api/ai/debug-fix', '/ai/debug-fix'], async (req, res) => {
     const { code, errorOutput, language } = req.body
     if (!code || !errorOutput) return res.status(400).json({ error: 'code and errorOutput required' })
     try {
@@ -72,7 +72,7 @@ app.post('/api/ai/debug-fix', async (req, res) => {
     }
 })
 
-app.post('/api/ai/visualize', async (req, res) => {
+app.post(['/api/ai/visualize', '/ai/visualize'], async (req, res) => {
     const { code, language } = req.body
     if (!code) return res.status(400).json({ error: 'code required' })
     try {
@@ -87,7 +87,7 @@ app.post('/api/ai/visualize', async (req, res) => {
     }
 })
 
-app.post('/api/code/run', async (req, res) => {
+app.post(['/api/code/run', '/code/run'], async (req, res) => {
     const { code, language } = req.body
     if (!code) return res.status(400).send('Code is required')
 
