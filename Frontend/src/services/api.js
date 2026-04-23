@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // API service layer: encapsulates HTTP calls to the backend
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3000') + '/api'
 
 // ── Existing endpoints ─────────────────────────────────────────────────────
 

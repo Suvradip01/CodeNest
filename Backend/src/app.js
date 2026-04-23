@@ -33,17 +33,13 @@ app.get('/', (req, res) => {
     } else {
         res.send('CodeNest Backend — Running (Frontend not built)')
     }
-})
+})// ─── API Routes with /api prefix ──────────────────────────────────────────
+app.use('/api/projects', projectRoutes)
 
-// ─── Project Management Endpoints (Disk-based) ─────────────────────────────
-app.use('/projects', projectRoutes)
+app.post('/api/ai/get-review', aiRoutes.getReview)
+app.post('/api/ai/edit-code', aiRoutes.editCode)
 
-// ─── Existing AI endpoints ─────────────────────────────────────────────────
-app.post('/ai/get-review', aiRoutes.getReview)
-app.post('/ai/edit-code', aiRoutes.editCode)
-
-// ─── Feature 1: Live AI Layer ──────────────────────────────────────────────
-app.post('/ai/live-check', async (req, res) => {
+app.post('/api/ai/live-check', async (req, res) => {
     const { code, language } = req.body
     if (!code || !code.trim()) return res.json({ warnings: [], suggestions: [], complexity: 'Simple' })
     try {
@@ -58,8 +54,7 @@ app.post('/ai/live-check', async (req, res) => {
     }
 })
 
-// ─── Feature 3: Versioning — Explain Diff ─────────────────────────────────
-app.post('/ai/explain-diff', async (req, res) => {
+app.post('/api/ai/explain-diff', async (req, res) => {
     const { oldCode, newCode } = req.body
     if (!oldCode || !newCode) return res.status(400).json({ error: 'oldCode and newCode required' })
     try {
@@ -74,8 +69,7 @@ app.post('/ai/explain-diff', async (req, res) => {
     }
 })
 
-// ─── Feature 4: AI Debug Mode ─────────────────────────────────────────────
-app.post('/ai/debug-fix', async (req, res) => {
+app.post('/api/ai/debug-fix', async (req, res) => {
     const { code, errorOutput, language } = req.body
     if (!code || !errorOutput) return res.status(400).json({ error: 'code and errorOutput required' })
     try {
@@ -90,8 +84,7 @@ app.post('/ai/debug-fix', async (req, res) => {
     }
 })
 
-// ─── Feature 5: Visual Execution ──────────────────────────────────────────
-app.post('/ai/visualize', async (req, res) => {
+app.post('/api/ai/visualize', async (req, res) => {
     const { code, language } = req.body
     if (!code) return res.status(400).json({ error: 'code required' })
     try {
@@ -106,14 +99,12 @@ app.post('/ai/visualize', async (req, res) => {
     }
 })
 
-// ─── Code Execution Runner (Isolated Service) ────────────────────────
-app.post('/code/run', async (req, res) => {
+app.post('/api/code/run', async (req, res) => {
     const { code, language } = req.body
     if (!code) return res.status(400).send('Code is required')
 
     try {
         const axios = require('axios')
-        // We call the 'runner' service which is isolated in docker-compose
         const response = await axios.post('http://runner:3001/run', {
             code,
             language: language || 'javascript'
