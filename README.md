@@ -78,40 +78,42 @@ CodeNest is a next-generation, high-performance web-based IDE that combines trad
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- Node.js (v18+)
-- A Groq API Key (Get it at [console.groq.com](https://console.groq.com/))
+### 1. Local Setup
+1. **Clone & Install:**
+   ```bash
+   git clone https://github.com/Suvradip01/CodeNest.git
+   cd CodeNest/Backend && npm install
+   cd ../Frontend && npm install
+   ```
+2. **Environment Variables:**
+   Create a `.env` in `Backend/`:
+   ```env
+   GROQ_API_KEY=your_key
+   MONGODB_URI=mongodb://localhost:27017/codenest
+   ```
+3. **Run:** `npm start` (Backend) and `npm run dev` (Frontend).
 
-### 2. Installation
-```bash
-# Clone the repo
-git clone https://github.com/Suvradip01/CodeNest.git
-cd CodeNest
+### 2. Production Deployment (Vercel + Railway)
 
-# Install Backend dependencies
-cd Backend
-npm install
+| Platform | Variable | Description |
+|----------|----------|-------------|
+| **Railway** | `MONGODB_URI` | Your MongoDB Atlas connection string |
+| **Railway** | `GROQ_API_KEY` | Your Groq SDK API key |
+| **Vercel** | `VITE_API_URL` | Your Railway App URL (e.g., `https://app.up.railway.app`) |
 
-# Install Frontend dependencies
-cd ../Frontend
-npm install
-```
+> [!IMPORTANT]
+> After adding `VITE_API_URL` to Vercel, you **must redeploy** the frontend for the changes to take effect.
 
-### 3. Configuration
-Create a `.env` file in the `Backend` directory:
-```env
-PORT=3000
-GROQ_API_KEY=your_api_key_here
-```
+### 3. System Health Check
+Verify your backend configuration by visiting:
+`https://<your-railway-url>/api/health`
 
-### 4. Run the App
-```bash
-# Start Backend (from /Backend)
-npm start
+---
 
-# Start Frontend (from /Frontend)
-npm run dev
-```
+## 🛡️ Architecture & Security
+- **Isolated Runner:** Code execution is sandboxed in a separate container (via Docker) to prevent server takeover.
+- **Cloud Persistence:** Multi-file project data is stored in **MongoDB Atlas**, surviving redeployments.
+- **Microservices:** Decoupled Frontend (Vercel) and Backend (Railway) for optimal performance.
 
 ---
 
