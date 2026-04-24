@@ -251,7 +251,8 @@ app.post(
 
         try {
             const axios = require('axios');
-            const response = await axios.post('http://runner:3001/run', {
+            const runnerUrl = process.env.RUNNER_URL || 'http://runner:3001';
+            const response = await axios.post(`${runnerUrl}/run`, {
                 code,
                 language: language || 'javascript'
             }, { timeout: 15000 });
