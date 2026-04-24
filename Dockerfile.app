@@ -6,11 +6,13 @@ RUN npm install
 COPY Frontend/ ./
 RUN npm run build
 
-# Stage 2: Main App (The "Brains")
+# Stage 2: Main App (The "Brains" + "Worker")
 FROM node:20-alpine
 WORKDIR /app
 
-# No compilers here - security!
+# Install all necessary compilers for direct execution
+RUN apk add --no-cache python3 g++ gcc make openjdk17-jdk
+
 COPY Backend/package*.json ./Backend/
 RUN cd Backend && npm install --production
 COPY Backend/ ./Backend/
