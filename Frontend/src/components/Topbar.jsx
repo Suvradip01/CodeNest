@@ -66,12 +66,6 @@ export default function Topbar({
 
   return (
     <div className="sticky top-4 z-50 mx-4 my-2 flex items-center justify-between px-4 py-2.5 rounded-2xl bg-white/70 dark:bg-black/60 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-500 hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] gap-2">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes float-icon {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-3px); }
-        }
-      ` }} />
 
       <div
         onClick={onGoHome}

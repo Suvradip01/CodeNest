@@ -260,7 +260,7 @@ export default function LandingPage({
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/[0.05] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <Code2 className="w-5 h-5 text-indigo-600" />
-            <span>{isBooting ? 'Connecting...' : session?.user ? 'Open Workspace' : 'Continue to Workspace'}</span>
+            <span>{isBooting ? 'Connecting...' : session?.user ? 'Open Workspace' : 'Workspace'}</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
 

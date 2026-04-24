@@ -444,4 +444,9 @@
 .btn-premium-hover:hover::after {
   left: 100%;
 }
+
+@keyframes float-icon {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
 
