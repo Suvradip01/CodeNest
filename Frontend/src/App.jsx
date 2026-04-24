@@ -485,7 +485,7 @@ function App() {
           onToggleVersions={() => setShowVersionPanel(current => !current)}
           isVisualizing={isVisualizing}
           onVisualize={handleVisualize}
-          onGoHome={() => setView('landing')}
+          onGoHome={() => setView('desktop')}
           session={session}
           authRequired={authRequired}
           onOpenAuth={() => openAuth('login')}

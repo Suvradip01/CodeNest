@@ -75,6 +75,7 @@ export default function Topbar({
 
       <div
         onClick={onGoHome}
+        title="Back to Desktop"
         className="flex items-center gap-3 group cursor-pointer selection:bg-transparent shrink-0 hover:opacity-80 transition-opacity"
       >
         <div className="relative p-2.5 bg-gradient-to-br from-violet-500/10 to-blue-500/10 dark:from-violet-500/20 dark:to-blue-500/20 rounded-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden shadow-inner">

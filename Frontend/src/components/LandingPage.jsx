@@ -56,7 +56,7 @@ const CLR = {
 const CARDS = [
   {
     title: 'Instant Execution',
-    desc: 'Multi-runtime execution for JavaScript, Python, Java, and C with guarded limits.',
+    desc: 'High-performance runtime execution for JavaScript, Python, Java, and C with secure resource isolation.',
     grad: 'from-sky-500/[0.18] to-sky-600/[0.04]',
     border: 'border-sky-500/30',
     dot: 'bg-sky-400',
@@ -66,7 +66,7 @@ const CARDS = [
   },
   {
     title: 'AI Review',
-    desc: 'Architecture, security, and performance analysis with reusable caching.',
+    desc: 'Deep architectural, security, and performance analysis powered by advanced AI models.',
     grad: 'from-purple-500/[0.18] to-purple-600/[0.04]',
     border: 'border-purple-500/30',
     dot: 'bg-purple-400',
@@ -76,7 +76,7 @@ const CARDS = [
   },
   {
     title: 'Visual Flow',
-    desc: 'Turn logic into flowcharts so review and debugging stay understandable.',
+    desc: 'Translate complex logic into intuitive diagrams for enhanced debugging and architectural review.',
     grad: 'from-emerald-500/[0.18] to-emerald-600/[0.04]',
     border: 'border-emerald-500/30',
     dot: 'bg-emerald-400',
@@ -86,7 +86,7 @@ const CARDS = [
   },
   {
     title: 'Version History',
-    desc: 'Keep snapshots, compare diffs, and restore working states quickly.',
+    desc: 'Automated snapshots and delta analysis to maintain project integrity across all revisions.',
     grad: 'from-indigo-500/[0.18] to-indigo-600/[0.04]',
     border: 'border-indigo-500/30',
     dot: 'bg-indigo-400',
@@ -96,7 +96,7 @@ const CARDS = [
   },
   {
     title: 'AI Debug',
-    desc: 'Convert runtime failures into focused explanations and candidate fixes.',
+    desc: 'Transform runtime failures into actionable insights and candidate fixes with intelligent diagnostics.',
     grad: 'from-amber-500/[0.18] to-amber-600/[0.04]',
     border: 'border-amber-500/30',
     dot: 'bg-amber-400',
@@ -106,7 +106,7 @@ const CARDS = [
   },
   {
     title: 'Secure Projects',
-    desc: 'Use account-backed workspaces with isolated project ownership when enabled.',
+    desc: 'Enterprise-grade workspace isolation with identity-backed project ownership and encryption.',
     grad: 'from-rose-500/[0.18] to-rose-600/[0.04]',
     border: 'border-rose-500/30',
     dot: 'bg-rose-400',
@@ -209,7 +209,7 @@ export default function LandingPage({
         <div className="flex items-center gap-2.5 mb-8" style={{ animation: 'land-up 0.5s ease-out forwards' }}>
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" style={{ animationDuration: '2s' }} />
           <span className="text-[11px] font-semibold text-indigo-400 tracking-[0.18em] uppercase">
-            AI-Powered Code Playground
+            AI-Augmented Cloud Workspace
           </span>
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
         </div>
@@ -241,7 +241,7 @@ export default function LandingPage({
         </p>
 
         <p className="text-zinc-500 text-sm max-w-md leading-relaxed mb-12" style={{ animation: 'land-up 0.5s ease-out 0.22s both' }}>
-          Write, run and get AI reviews for JavaScript, Python, Java and C from a polished browser IDE with zero local setup.
+          The intelligent cloud workspace for modern engineering. Architect, execute, and optimize with zero configuration.
         </p>
 
         <div
@@ -309,7 +309,7 @@ export default function LandingPage({
         </div>
 
         <p className="text-[11px] text-zinc-700 tracking-widest uppercase mb-20">
-          4 languages - protected execution - AI review
+          Secure Execution • AI-Driven Analysis • Multi-Language Support
         </p>
 
         <div className="w-full max-w-4xl" style={{ animation: 'land-up 0.6s ease-out 0.52s both' }}>
@@ -342,7 +342,7 @@ export default function LandingPage({
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-white/[0.04] py-5 text-center text-[11px] text-zinc-700 tracking-wide">
+      <footer className="relative z-10 border-t border-white/[0.04] py-5 text-center text-[11px] text-zinc-300 font-bold tracking-wide">
         CodeNest - 2026
       </footer>
 
