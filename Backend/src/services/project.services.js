@@ -1,5 +1,19 @@
 const Project = require('../models/Project');
 const archiver = require('archiver');
+const { cacheGet, cacheSet, cacheDel } = require('../cache/redis');
+
+// Cache TTL for project list reads (seconds)
+const PROJECT_LIST_TTL = Number(process.env.PROJECT_LIST_CACHE_TTL || 60);
+
+// Build the cache key for a given owner (or anonymous)
+function projectListKey(ownerId) {
+    return `projects:list:${ownerId || 'anon'}`;
+}
+
+// Invalidate list cache when any write happens
+async function bustListCache(ownerId) {
+    await cacheDel(projectListKey(ownerId));
+}
 
 const MAX_PROJECT_NAME_LENGTH = Number(process.env.MAX_PROJECT_NAME_LENGTH || 64);
 const MAX_FILE_NAME_LENGTH = Number(process.env.MAX_FILE_NAME_LENGTH || 120);
@@ -48,10 +62,20 @@ function ensureFileContent(content) {
  * Get all projects and their files from MongoDB
  */
 async function listProjects(ownerId) {
+    const cacheKey = projectListKey(ownerId);
+
+    // --- Cache READ ---
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+        console.log(`[Cache] HIT ${cacheKey}`);
+        return cached;
+    }
+    console.log(`[Cache] MISS ${cacheKey} — querying MongoDB`);
+
+    // --- Slow DB query ---
     const projects = await Project.find(publicOrOwnedScope(ownerId)).sort({ updatedAt: -1 });
-    
-    // Map to the format expected by the frontend
-    return projects.map(p => ({
+
+    const result = projects.map(p => ({
         id: p._id,
         name: p.name,
         createdAt: p.createdAt,
@@ -64,6 +88,10 @@ async function listProjects(ownerId) {
             updatedAt: f.updatedAt
         }))
     }));
+
+    // --- Cache WRITE ---
+    await cacheSet(cacheKey, result, PROJECT_LIST_TTL);
+    return result;
 }
 
 /**
@@ -75,6 +103,7 @@ async function createProject(name, ownerId) {
 
     try {
         await project.save();
+        await bustListCache(ownerId); // invalidate cached list
         return {
             id: project._id,
             name: project.name,
@@ -98,6 +127,7 @@ async function renameProject(projectId, name, ownerId) {
 
     try {
         await project.save();
+        await bustListCache(ownerId); // invalidate cached list
     } catch (error) {
         if (error?.code === 11000) {
             throw new Error('A project with this name already exists');
@@ -152,6 +182,7 @@ async function saveFile(projectId, fileNameOrId, content, ownerId) {
 
     project.updatedAt = Date.now();
     await project.save();
+    await bustListCache(ownerId); // invalidate cached list
     
     const updatedFile = project.files.find(
         f => f.name === resolvedFileName || String(f._id) === String(fileNameOrId)
@@ -190,6 +221,7 @@ async function renameFile(projectId, fileId, nextName, ownerId) {
     file.updatedAt = Date.now();
     project.updatedAt = Date.now();
     await project.save();
+    await bustListCache(ownerId); // invalidate cached list
 
     return {
         id: file._id,
@@ -212,6 +244,7 @@ async function deleteFile(projectId, fileNameOrId, ownerId) {
     );
     project.updatedAt = Date.now();
     await project.save();
+    await bustListCache(ownerId); // invalidate cached list
 }
 
 /**
@@ -219,6 +252,7 @@ async function deleteFile(projectId, fileNameOrId, ownerId) {
  */
 async function deleteProject(projectId, ownerId) {
     await Project.deleteOne(buildProjectQuery(projectId, ownerId));
+    await bustListCache(ownerId); // invalidate cached list
 }
 
 /**

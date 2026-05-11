@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth.routes');
 const projectRoutes = require('./routes/project.routes');
 const aiServices = require('./services/ai.services');
 const { isAuthRequired, requireAuthIfConfigured } = require('./middleware/auth');
+const { rateLimitIncr, keyTTL } = require('./cache/redis');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/codenest';
 
@@ -41,20 +42,39 @@ function getClientKey(req) {
     return req.user?.id || req.ip || req.socket?.remoteAddress || 'unknown';
 }
 
+// --- In-memory fallback store (used when Redis is unavailable) ---
+const inMemoryHits = new Map();
+
 function createRateLimiter({ name, windowMs, maxRequests }) {
-    const hits = new Map();
+    const windowSeconds = Math.ceil(windowMs / 1000);
 
-    return (req, res, next) => {
+    return async (req, res, next) => {
+        const clientKey = getClientKey(req);
+        const redisKey = `rl:${name}:${clientKey}`;
+
+        // --- Try Redis-backed rate limiting first ---
+        const redisCount = await rateLimitIncr(redisKey, windowSeconds);
+
+        if (redisCount !== null) {
+            // Redis is available
+            if (redisCount > maxRequests) {
+                const ttl = (await keyTTL(redisKey)) ?? 1;
+                res.setHeader('Retry-After', String(Math.max(ttl, 1)));
+                return res.status(429).json({ error: `Rate limit exceeded for ${name}` });
+            }
+            return next();
+        }
+
+        // --- Fallback: in-memory rate limiting ---
         const now = Date.now();
-        const key = `${name}:${getClientKey(req)}`;
-        const recent = (hits.get(key) || []).filter(timestamp => now - timestamp < windowMs);
+        const key = `${name}:${clientKey}`;
+        const recent = (inMemoryHits.get(key) || []).filter(t => now - t < windowMs);
 
-        if (hits.size > 5000) {
-            for (const [storedKey, timestamps] of hits.entries()) {
+        // Prune stale keys every 5 000 entries
+        if (inMemoryHits.size > 5000) {
+            for (const [k, timestamps] of inMemoryHits.entries()) {
                 const latest = timestamps[timestamps.length - 1];
-                if (!latest || now - latest >= windowMs) {
-                    hits.delete(storedKey);
-                }
+                if (!latest || now - latest >= windowMs) inMemoryHits.delete(k);
             }
         }
 
@@ -65,7 +85,7 @@ function createRateLimiter({ name, windowMs, maxRequests }) {
         }
 
         recent.push(now);
-        hits.set(key, recent);
+        inMemoryHits.set(key, recent);
         next();
     };
 }
