@@ -170,10 +170,7 @@ export default function LandingPage({
 
       <nav className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-white/[0.05]">
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30">
-            <Code2 className="w-4 h-4 text-indigo-400" />
-          </div>
-          <span className="font-semibold text-[15px] tracking-tight">CodeNest</span>
+          <img src="/logo.png" alt="CodeNest" className="w-36 sm:w-48 h-8 sm:h-10 object-cover object-center drop-shadow-sm" />
         </div>
 
         <div className="flex items-center gap-3 sm:gap-5">

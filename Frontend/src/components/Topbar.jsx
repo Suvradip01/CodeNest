@@ -72,12 +72,7 @@ export default function Topbar({
         title="Back to Desktop"
         className="flex items-center gap-3 group cursor-pointer selection:bg-transparent shrink-0 hover:opacity-80 transition-opacity"
       >
-        <div className="relative p-2.5 bg-gradient-to-br from-violet-500/10 to-blue-500/10 dark:from-violet-500/20 dark:to-blue-500/20 rounded-xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden shadow-inner">
-          <Code2 className="h-5 w-5 text-violet-600 dark:text-violet-400 animate-[float-icon_3s_ease-in-out_infinite]" />
-        </div>
-        <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 dark:from-violet-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent drop-shadow-sm hidden sm:block">
-          {brand}
-        </h1>
+        <img src="/logo.png" alt={brand} className="w-32 sm:w-40 h-8 sm:h-9 object-cover object-center drop-shadow-sm" />
       </div>
 
       <div className="flex items-center gap-1.5 flex-1 justify-center">

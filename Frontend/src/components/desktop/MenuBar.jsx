@@ -15,9 +15,8 @@ export default function MenuBar() {
   return (
     <div className="absolute top-0 left-0 right-0 h-7 bg-black/10 backdrop-blur-xl flex items-center justify-between px-5 text-[12px] text-white/90 z-[100] border-b border-white/5">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5 hover:bg-white/10 px-2 py-0.5 rounded transition-colors cursor-default font-bold">
-          <Monitor className="w-3 h-3" />
-          <span>CodeNest</span>
+        <div className="flex items-center hover:bg-white/10 px-1 py-0.5 rounded transition-colors cursor-default font-bold">
+          <img src="/logo.png" alt="CodeNest" className="w-16 sm:w-20 h-4 sm:h-5 object-cover object-center" />
         </div>
         <span className="opacity-80 hover:opacity-100 transition-opacity cursor-default">File</span>
         <span className="opacity-80 hover:opacity-100 transition-opacity cursor-default">Edit</span>
