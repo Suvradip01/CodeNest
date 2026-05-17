@@ -1,36 +1,30 @@
-const crypto = require('crypto');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-const aiRoutes = require('./routes/ai.routes');
+
+// Connect to Database
+const connectDB = require('./db/db');
+
+// Import Routes
 const authRoutes = require('./routes/auth.routes');
 const projectRoutes = require('./routes/project.routes');
-const aiServices = require('./services/ai.services');
-const { isAuthRequired, requireAuthIfConfigured } = require('./middleware/auth');
-const { rateLimitIncr, keyTTL } = require('./cache/redis');
+const aiRoutes = require('./routes/ai.routes');
+const codeRoutes = require('./routes/code.routes');
+const healthRoutes = require('./routes/health.routes');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/codenest';
+// Import Middleware
+const { requireAuthIfConfigured, isAuthRequired } = require('./middleware/auth');
+const { projectLimiter } = require('./middleware/rateLimiter');
+const { requestLogger } = require('./middleware/logger');
+
+// Initialize database
+connectDB();
 
 if (isAuthRequired() && !process.env.JWT_SECRET) {
     console.warn('JWT_SECRET is not set. Falling back to the development signing secret.');
 }
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB Atlas'))
-    .catch(err => console.error('MongoDB connection error:', err));
-
 const app = express();
-const startedAt = Date.now();
-const requestMetrics = {
-    total: 0,
-    byRoute: {},
-    byStatus: {}
-};
-
-const MAX_CODE_BYTES = Number(process.env.MAX_CODE_BYTES || 64 * 1024);
-const MAX_PROMPT_BYTES = Number(process.env.MAX_PROMPT_BYTES || 8 * 1024);
-const MAX_ERROR_OUTPUT_BYTES = Number(process.env.MAX_ERROR_OUTPUT_BYTES || 32 * 1024);
 
 function getCorsOrigin() {
     const configured = String(process.env.CORS_ORIGIN || '').trim();
@@ -38,363 +32,31 @@ function getCorsOrigin() {
     return configured.split(',').map(value => value.trim()).filter(Boolean);
 }
 
-function getClientKey(req) {
-    return req.user?.id || req.ip || req.socket?.remoteAddress || 'unknown';
-}
-
-// --- In-memory fallback store (used when Redis is unavailable) ---
-const inMemoryHits = new Map();
-
-function createRateLimiter({ name, windowMs, maxRequests }) {
-    const windowSeconds = Math.ceil(windowMs / 1000);
-
-    return async (req, res, next) => {
-        const clientKey = getClientKey(req);
-        const redisKey = `rl:${name}:${clientKey}`;
-
-        // --- Try Redis-backed rate limiting first ---
-        const redisCount = await rateLimitIncr(redisKey, windowSeconds);
-
-        if (redisCount !== null) {
-            // Redis is available
-            if (redisCount > maxRequests) {
-                const ttl = (await keyTTL(redisKey)) ?? 1;
-                res.setHeader('Retry-After', String(Math.max(ttl, 1)));
-                return res.status(429).json({ error: `Rate limit exceeded for ${name}` });
-            }
-            return next();
-        }
-
-        // --- Fallback: in-memory rate limiting ---
-        const now = Date.now();
-        const key = `${name}:${clientKey}`;
-        const recent = (inMemoryHits.get(key) || []).filter(t => now - t < windowMs);
-
-        // Prune stale keys every 5 000 entries
-        if (inMemoryHits.size > 5000) {
-            for (const [k, timestamps] of inMemoryHits.entries()) {
-                const latest = timestamps[timestamps.length - 1];
-                if (!latest || now - latest >= windowMs) inMemoryHits.delete(k);
-            }
-        }
-
-        if (recent.length >= maxRequests) {
-            const retryAfterSeconds = Math.ceil((windowMs - (now - recent[0])) / 1000);
-            res.setHeader('Retry-After', String(Math.max(retryAfterSeconds, 1)));
-            return res.status(429).json({ error: `Rate limit exceeded for ${name}` });
-        }
-
-        recent.push(now);
-        inMemoryHits.set(key, recent);
-        next();
-    };
-}
-
-function ensureTextPayloadWithinLimit(fieldName, maxBytes) {
-    return (req, res, next) => {
-        const value = req.body?.[fieldName];
-        if (typeof value !== 'string') return next();
-
-        if (Buffer.byteLength(value, 'utf8') > maxBytes) {
-            return res.status(413).json({
-                error: `${fieldName} exceeds the ${maxBytes} byte limit`
-            });
-        }
-
-        next();
-    };
-}
-
-const aiLimiter = createRateLimiter({
-    name: 'ai',
-    windowMs: Number(process.env.AI_RATE_WINDOW_MS || 60 * 1000),
-    maxRequests: Number(process.env.AI_RATE_LIMIT || 20)
-});
-
-const executionLimiter = createRateLimiter({
-    name: 'execution',
-    windowMs: Number(process.env.EXEC_RATE_WINDOW_MS || 60 * 1000),
-    maxRequests: Number(process.env.EXEC_RATE_LIMIT || 10)
-});
-
-const projectLimiter = createRateLimiter({
-    name: 'projects',
-    windowMs: Number(process.env.PROJECT_RATE_WINDOW_MS || 60 * 1000),
-    maxRequests: Number(process.env.PROJECT_RATE_LIMIT || 60)
-});
-
+// Global Middleware
 app.use(cors({ origin: getCorsOrigin() }));
 app.use(express.json({ limit: process.env.MAX_JSON_BODY || '256kb' }));
+app.use(requestLogger);
 
-app.use((req, res, next) => {
-    req.requestId = crypto.randomUUID();
-    req.requestStartedAt = Date.now();
-    res.setHeader('X-Request-Id', req.requestId);
-
-    res.on('finish', () => {
-        const routeKey = req.route?.path || req.path;
-        const statusGroup = `${Math.floor(res.statusCode / 100)}xx`;
-        requestMetrics.total += 1;
-        requestMetrics.byRoute[routeKey] = (requestMetrics.byRoute[routeKey] || 0) + 1;
-        requestMetrics.byStatus[statusGroup] = (requestMetrics.byStatus[statusGroup] || 0) + 1;
-
-        console.log(JSON.stringify({
-            type: 'request',
-            requestId: req.requestId,
-            method: req.method,
-            path: req.originalUrl,
-            statusCode: res.statusCode,
-            durationMs: Date.now() - req.requestStartedAt,
-            ip: req.ip
-        }));
-    });
-
-    next();
-});
-
+// Setup Routes
 app.use('/api/auth', authRoutes);
-app.use('/auth', authRoutes);
+app.use('/auth', authRoutes); // Maintain backwards compatibility
+
 app.use('/api/projects', requireAuthIfConfigured, projectLimiter, projectRoutes);
-app.use('/projects', requireAuthIfConfigured, projectLimiter, projectRoutes);
+app.use('/projects', requireAuthIfConfigured, projectLimiter, projectRoutes); // Maintain backwards compatibility
 
-app.post(
-    ['/api/ai/get-review', '/ai/get-review'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    aiRoutes.getReview
-);
+app.use('/api/ai', aiRoutes);
+app.use('/ai', aiRoutes); // Maintain backwards compatibility
 
-app.post(
-    ['/api/ai/edit-code', '/ai/edit-code'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('prompt', MAX_PROMPT_BYTES),
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    aiRoutes.editCode
-);
+app.use('/api/code', codeRoutes);
+app.use('/code', codeRoutes); // Maintain backwards compatibility
 
-app.post(
-    ['/api/ai/live-check', '/ai/live-check'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    async (req, res) => {
-        const { code, language } = req.body;
-        if (!code || !code.trim()) return res.json({ warnings: [], suggestions: [], complexity: 'Simple' });
-        try {
-            const result = await aiServices.liveCheck(code, language || 'javascript');
-            res.json(result);
-        } catch (err) {
-            console.error('Live check error:', err.message);
-            const status = err?.status || err?.code || err?.error?.code;
-            if (status === 429) return res.status(429).json({ error: 'AI rate-limited. Please retry shortly.' });
-            if (status === 503) return res.status(503).json({ error: 'AI temporarily unavailable. Please retry shortly.' });
-            res.status(500).json({ error: 'Live check failed' });
-        }
-    }
-);
+app.use('/api', healthRoutes);
+app.use('/', healthRoutes); // Maps /health and /metrics
 
-app.post(
-    ['/api/ai/explain-diff', '/ai/explain-diff'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('oldCode', MAX_CODE_BYTES),
-    ensureTextPayloadWithinLimit('newCode', MAX_CODE_BYTES),
-    async (req, res) => {
-        const { oldCode, newCode } = req.body;
-        if (!oldCode || !newCode) return res.status(400).json({ error: 'oldCode and newCode required' });
-        try {
-            const explanation = await aiServices.explainDiff(oldCode, newCode);
-            res.json({ explanation });
-        } catch (err) {
-            console.error('Explain diff error:', err.message);
-            const status = err?.status || err?.code || err?.error?.code;
-            if (status === 429) return res.status(429).json({ error: 'AI rate-limited. Please retry shortly.' });
-            if (status === 503) return res.status(503).json({ error: 'AI temporarily unavailable. Please retry shortly.' });
-            res.status(500).json({ error: 'Diff explanation failed' });
-        }
-    }
-);
-
-app.post(
-    ['/api/ai/debug-fix', '/ai/debug-fix'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    ensureTextPayloadWithinLimit('errorOutput', MAX_ERROR_OUTPUT_BYTES),
-    async (req, res) => {
-        const { code, errorOutput, language } = req.body;
-        if (!code || !errorOutput) return res.status(400).json({ error: 'code and errorOutput required' });
-        try {
-            const result = await aiServices.debugFix(code, errorOutput, language || 'javascript');
-            res.json(result);
-        } catch (err) {
-            console.error('Debug fix error:', err.message);
-            const status = err?.status || err?.code || err?.error?.code;
-            if (status === 429) return res.status(429).json({ error: 'AI rate-limited. Please retry shortly.' });
-            if (status === 503) return res.status(503).json({ error: 'AI temporarily unavailable. Please retry shortly.' });
-            res.status(500).json({ error: 'Debug fix failed' });
-        }
-    }
-);
-
-app.post(
-    ['/api/ai/visualize', '/ai/visualize'],
-    requireAuthIfConfigured,
-    aiLimiter,
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    async (req, res) => {
-        const { code, language } = req.body;
-        if (!code) return res.status(400).json({ error: 'code required' });
-        try {
-            const diagram = await aiServices.visualizeCode(code, language || 'javascript');
-            res.json({ diagram });
-        } catch (err) {
-            console.error('Visualize error:', err.message);
-            const status = err?.status || err?.code || err?.error?.code;
-            if (status === 429) return res.status(429).json({ error: 'AI rate-limited. Please retry shortly.' });
-            if (status === 503) return res.status(503).json({ error: 'AI temporarily unavailable. Please retry shortly.' });
-            res.status(500).json({ error: 'Visualization failed' });
-        }
-    }
-);
-
-app.post(
-    ['/api/code/run', '/code/run'],
-    requireAuthIfConfigured,
-    executionLimiter,
-    ensureTextPayloadWithinLimit('code', MAX_CODE_BYTES),
-    async (req, res) => {
-        const { code, language } = req.body;
-        if (!code) return res.status(400).send('Code is required');
-
-        try {
-            const axios = require('axios');
-            const runnerUrl = process.env.RUNNER_URL || 'http://runner:3001';
-            const response = await axios.post(`${runnerUrl}/run`, {
-                code,
-                language: language || 'javascript'
-            }, { timeout: 15000 });
-
-            res.json(response.data);
-        } catch (err) {
-            const allowLocalFallback = process.env.ALLOW_LOCAL_EXECUTION_FALLBACK === 'true';
-            if (allowLocalFallback) {
-                console.warn(`Runner unavailable, attempting direct local execution for ${language || 'javascript'}.`);
-                const { spawn } = require('child_process');
-                const fs = require('fs');
-                const os = require('os');
-                const path = require('path');
-
-                const lang = String(language || 'javascript').toLowerCase();
-                const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codenest-exec-'));
-                
-                try {
-                    let cmd = '';
-                    let args = [];
-                    let file = '';
-
-                    if (lang === 'javascript') {
-                        file = 'index.js';
-                        cmd = 'node';
-                        args = [file];
-                    } else if (lang === 'python') {
-                        file = 'script.py';
-                        cmd = 'python3';
-                        args = [file];
-                    } else if (lang === 'java') {
-                        file = 'Main.java';
-                        fs.writeFileSync(path.join(tempDir, file), code);
-                        // Compile first
-                        const compile = await new Promise((resolve) => {
-                            const cp = spawn('javac', ['Main.java'], { cwd: tempDir });
-                            cp.on('close', code => resolve(code));
-                        });
-                        if (compile !== 0) return res.json({ output: ['Compilation Error'], stderr: ['javac failed'], exitCode: compile });
-                        cmd = 'java';
-                        args = ['Main'];
-                    } else if (lang === 'c') {
-                        file = 'main.c';
-                        fs.writeFileSync(path.join(tempDir, file), code);
-                        const compile = await new Promise((resolve) => {
-                            const cp = spawn('gcc', ['main.c', '-o', 'main'], { cwd: tempDir });
-                            cp.on('close', code => resolve(code));
-                        });
-                        if (compile !== 0) return res.json({ output: ['Compilation Error'], stderr: ['gcc failed'], exitCode: compile });
-                        cmd = './main';
-                        args = [];
-                    }
-
-                    if (cmd) {
-                        if (lang !== 'java' && lang !== 'c') {
-                            fs.writeFileSync(path.join(tempDir, file), code);
-                        }
-                        
-                        const child = spawn(cmd, args, { cwd: tempDir });
-                        let output = '';
-                        let stderr = '';
-
-                        child.stdout.on('data', data => output += data.toString());
-                        child.stderr.on('data', data => stderr += data.toString());
-
-                        const result = await new Promise((resolve) => {
-                            const timer = setTimeout(() => {
-                                child.kill();
-                                resolve({ output: [output], stderr: ['Execution timed out'], exitCode: 124 });
-                            }, 5000);
-
-                            child.on('close', exitCode => {
-                                clearTimeout(timer);
-                                resolve({
-                                    output: output.split('\n').filter(Boolean),
-                                    stderr: stderr.split('\n').filter(Boolean),
-                                    exitCode: exitCode ?? 0
-                                });
-                            });
-                        });
-                        return res.json(result);
-                    }
-                } catch (e) {
-                    console.error('Direct execution failed:', e);
-                } finally {
-                    try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (err) {}
-                }
-            }
-
-            console.error('Execution Service Error:', err.message);
-            res.status(503).json({
-                output: ['Code execution service is currently unavailable.'],
-                stderr: [err.message],
-                exitCode: 1
-            });
-        }
-    }
-);
-
+// Serve Static Frontend
 app.use(express.static(path.join(__dirname, '../../Frontend/dist')));
 
-app.get(['/api/health', '/health'], (req, res) => {
-    res.json({
-        status: 'ok',
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-        groq_api_key: process.env.GROQ_API_KEY ? 'present' : 'missing',
-        auth_required: isAuthRequired(),
-        jwt_configured: Boolean(process.env.JWT_SECRET),
-        uptime_seconds: Math.round((Date.now() - startedAt) / 1000),
-        time: new Date().toISOString()
-    });
-});
-
-app.get(['/api/metrics', '/metrics'], (req, res) => {
-    res.json({
-        uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
-        requests: requestMetrics,
-        memory: process.memoryUsage(),
-        mongodbReadyState: mongoose.connection.readyState
-    });
-});
-
+// Fallback Route
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, '../../Frontend/dist/index.html');
     const fs = require('fs');
