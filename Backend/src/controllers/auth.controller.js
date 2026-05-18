@@ -44,6 +44,7 @@ exports.me = async (req, res) => {
 };
 
 exports.resetPassword = async (req, res) => {
+  console.log(`\n[DEBUG] Backend received reset request for: ${req.body?.email}`);
   try {
     const { email } = req.body;
     if (!email) {
