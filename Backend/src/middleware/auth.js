@@ -6,10 +6,13 @@ function isAuthRequired() {
 }
 
 function getBearerToken(req) {
+  if (req.cookies && req.cookies.token) {
+    return req.cookies.token;
+  }
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');
-  if (scheme !== 'Bearer' || !token) return null;
-  return token;
+  if (scheme === 'Bearer' && token) return token;
+  return null;
 }
 
 async function hydrateUserFromToken(token) {

@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 // Connect to Database
 const connectDB = require('./db/db');
@@ -34,6 +35,7 @@ function getCorsOrigin() {
 
 // Global Middleware
 app.use(cors({ origin: getCorsOrigin() }));
+app.use(cookieParser());
 app.use(express.json({ limit: process.env.MAX_JSON_BODY || '256kb' }));
 app.use(requestLogger);
 

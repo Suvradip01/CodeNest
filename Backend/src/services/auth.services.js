@@ -1,103 +1,25 @@
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// --- CONFIGURATION ---
 const TOKEN_TTL_SECONDS = Number(process.env.JWT_TTL_SECONDS || 60 * 60 * 24 * 7);
 const TOKEN_SECRET = process.env.JWT_SECRET || 'development-only-secret-change-me';
 const EMAIL_REGEX = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i;
 
-function toBase64Url(value) {
-  return Buffer.from(value).toString('base64url');
-}
 
-function fromBase64Url(value) {
-  return Buffer.from(value, 'base64url').toString('utf8');
-}
+// === 1. VALIDATION & SANITIZATION ===
 
-function signHmac(value) {
-  return crypto.createHmac('sha256', TOKEN_SECRET).update(value).digest('base64url');
-}
-
-function signToken(payload) {
-  const header = toBase64Url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const body = toBase64Url(JSON.stringify(payload));
-  const signature = signHmac(`${header}.${body}`);
-  return `${header}.${body}.${signature}`;
-}
-
-function verifyToken(token) {
-  const [header, body, signature] = String(token || '').split('.');
-  if (!header || !body || !signature) {
-    const err = new Error('Malformed token');
-    err.statusCode = 401;
-    throw err;
-  }
-
-  const expected = signHmac(`${header}.${body}`);
-  const providedBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expected);
-
-  if (
-    providedBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(providedBuffer, expectedBuffer)
-  ) {
-    const err = new Error('Invalid token signature');
-    err.statusCode = 401;
-    throw err;
-  }
-
-  const payload = JSON.parse(fromBase64Url(body));
-  if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-    const err = new Error('Token expired');
-    err.statusCode = 401;
-    throw err;
-  }
-
-  return payload;
-}
-
-function scryptAsync(password, salt) {
-  return new Promise((resolve, reject) => {
-    crypto.scrypt(password, salt, 64, (err, derivedKey) => {
-      if (err) reject(err);
-      else resolve(derivedKey);
-    });
-  });
-}
-
-async function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
-  const derived = await scryptAsync(password, salt);
-  return `${salt}:${derived.toString('hex')}`;
-}
-
-async function verifyPassword(password, storedHash) {
-  const [salt, expectedHex] = String(storedHash || '').split(':');
-  if (!salt || !expectedHex) return false;
-
-  const actual = await scryptAsync(password, salt);
-  const actualBuffer = Buffer.from(actual.toString('hex'), 'hex');
-  const expectedBuffer = Buffer.from(expectedHex, 'hex');
-
-  return (
-    actualBuffer.length === expectedBuffer.length &&
-    crypto.timingSafeEqual(actualBuffer, expectedBuffer)
-  );
-}
-
+// Normalize email input to lowercase and trimmed
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
-function sanitizeUser(user) {
-  return {
-    id: user._id.toString(),
-    email: user.email,
-    name: user.name || '',
-    createdAt: user.createdAt
-  };
-}
-
+// Validate credentials payload format
 function validateCredentials(email, password) {
   const normalizedEmail = normalizeEmail(email);
+
+  // Email format validation
   if (
     !normalizedEmail ||
     normalizedEmail.length > 254 ||
@@ -109,6 +31,7 @@ function validateCredentials(email, password) {
     throw err;
   }
 
+  // Password length validation
   if (typeof password !== 'string' || password.length < 8) {
     const err = new Error('Password must be at least 8 characters long');
     err.statusCode = 400;
@@ -118,13 +41,64 @@ function validateCredentials(email, password) {
   return normalizedEmail;
 }
 
+// Remove sensitive data before sending user object
+function sanitizeUser(user) {
+  return {
+    id: user._id.toString(),
+    email: user.email,
+    name: user.name || '',
+    createdAt: user.createdAt
+  };
+}
+
+
+// === 2. VERIFICATION & HASHING ===
+
+// Hash password using bcrypt adaptive hashing (10 rounds)
+async function hashPassword(password) {
+  const saltRounds = 10;
+  return bcrypt.hash(password, saltRounds);
+}
+
+// Compare raw password against secure stored bcrypt hash
+async function verifyPassword(password, storedHash) {
+  return bcrypt.compare(password, storedHash);
+}
+
+
+// === 3. AUTHENTICATION ===
+
+// Sign JWT payload with expiration and explicit HS256 algorithm
+function signToken(payload) {
+  return jwt.sign(payload, TOKEN_SECRET, {
+    expiresIn: TOKEN_TTL_SECONDS,
+    algorithm: 'HS256'
+  });
+}
+
+// Verify JWT signature and expiration, preventing algorithm confusion attacks
+function verifyToken(token) {
+  try {
+    if (!token) {
+      const err = new Error('No token provided');
+      err.statusCode = 401;
+      throw err;
+    }
+    return jwt.verify(token, TOKEN_SECRET, {
+      algorithms: ['HS256']
+    });
+  } catch (error) {
+    const err = new Error(error.message);
+    err.statusCode = 401;
+    throw err;
+  }
+}
+
+// Generate authentication session payload
 function createSession(user) {
-  const now = Math.floor(Date.now() / 1000);
   const payload = {
     sub: user._id.toString(),
-    email: user.email,
-    iat: now,
-    exp: now + TOKEN_TTL_SECONDS
+    email: user.email
   };
 
   return {
@@ -133,8 +107,14 @@ function createSession(user) {
   };
 }
 
+
+// === 4. HIGH-LEVEL WORKFLOWS (ENTRY POINTS) ===
+
+// Register a new user in the system
 async function registerUser({ email, password, name }) {
   const normalizedEmail = validateCredentials(email, password);
+
+  // Check if email already registered
   const existing = await User.findOne({ email: normalizedEmail });
   if (existing) {
     const err = new Error('An account with this email already exists');
@@ -142,6 +122,7 @@ async function registerUser({ email, password, name }) {
     throw err;
   }
 
+  // Hash password & store user
   const passwordHash = await hashPassword(password);
   const user = await User.create({
     email: normalizedEmail,
@@ -152,9 +133,14 @@ async function registerUser({ email, password, name }) {
   return createSession(user);
 }
 
+// Login an existing user
 async function loginUser({ email, password }) {
   const normalizedEmail = validateCredentials(email, password);
+
+  // Load user profile
   const user = await User.findOne({ email: normalizedEmail });
+
+  // Verify stored credentials match
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     const err = new Error('Invalid email or password');
     err.statusCode = 401;
@@ -164,6 +150,8 @@ async function loginUser({ email, password }) {
   return createSession(user);
 }
 
+
+// === EXPORTS ===
 module.exports = {
   loginUser,
   registerUser,
