@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('dns').setDefaultResultOrder('ipv4first');
 
 const cluster = require('cluster');
 const os = require('os');
