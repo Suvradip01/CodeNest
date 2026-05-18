@@ -25,7 +25,7 @@
     "groq-sdk": "^1.1.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.5.0",
-    "redis": "^5.12.1",
-    "resend": "^6.12.3"
+    "nodemailer": "^8.0.7",
+    "redis": "^5.12.1"
   }
 }

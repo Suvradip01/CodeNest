@@ -2,6 +2,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
+  }
+});
 
 // --- CONFIGURATION ---
 const TOKEN_TTL_SECONDS = Number(process.env.JWT_TTL_SECONDS || 60 * 60 * 24 * 7);
@@ -167,9 +176,9 @@ async function generateResetToken(email) {
   // Generate 40-character hex token
   const token = crypto.randomBytes(20).toString('hex');
   
-  // Set token and expiry (1 hour from now)
+  // Set token and expiry (15 minutes from now)
   user.resetPasswordToken = token;
-  user.resetPasswordExpires = Date.now() + 3600000;
+  user.resetPasswordExpires = Date.now() + 900000; // 15 minutes in milliseconds
   await user.save();
   
   return token;
@@ -211,6 +220,38 @@ async function resetPasswordWithToken(token, newPassword) {
   return true;
 }
 
+// Send password reset email
+async function sendPasswordResetEmail(email, resetLink) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[EMAIL SKIPPED] No GMAIL_USER or GMAIL_APP_PASSWORD found in .env. Reset Link:', resetLink);
+    return false;
+  }
+
+  const mailOptions = {
+    from: `"CodeNest Security" <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: 'CodeNest - Password Reset Request',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Password Reset</h2>
+        <p>You requested a password reset for your CodeNest account.</p>
+        <p>Please click the button below to set a new password. This link will expire in 15 minutes.</p>
+        <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0;">Reset Password</a>
+        <p style="font-size: 12px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+      </div>
+    `
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[EMAIL SENT] Password Reset sent to ${email}. Message ID: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    console.error('[EMAIL ERROR] Failed to send email via Nodemailer:', error);
+    throw error;
+  }
+}
+
 
 // === 5. EXPORTS ===
 module.exports = {
@@ -219,5 +260,6 @@ module.exports = {
   sanitizeUser,
   verifyToken,
   generateResetToken,
-  resetPasswordWithToken
+  resetPasswordWithToken,
+  sendPasswordResetEmail
 };
