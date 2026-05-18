@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 
 // --- CONFIGURATION ---
@@ -151,10 +152,72 @@ async function loginUser({ email, password }) {
 }
 
 
-// === 4. EXPORTS ===
+// === 4. PASSWORD MANAGEMENT ===
+
+// Generate a secure, time-limited reset token
+async function generateResetToken(email) {
+  const normalizedEmail = normalizeEmail(email);
+  const user = await User.findOne({ email: normalizedEmail });
+  
+  if (!user) {
+    // Return null silently to prevent email enumeration
+    return null;
+  }
+
+  // Generate 40-character hex token
+  const token = crypto.randomBytes(20).toString('hex');
+  
+  // Set token and expiry (1 hour from now)
+  user.resetPasswordToken = token;
+  user.resetPasswordExpires = Date.now() + 3600000;
+  await user.save();
+  
+  return token;
+}
+
+// Reset password using a valid token
+async function resetPasswordWithToken(token, newPassword) {
+  if (!token) {
+    const err = new Error('Reset token is missing');
+    err.statusCode = 400;
+    throw err;
+  }
+  
+  // Password length validation
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    const err = new Error('Password must be at least 8 characters long');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Find user by valid, unexpired token
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    const err = new Error('Password reset token is invalid or has expired');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Hash new password and clear token fields
+  user.passwordHash = await hashPassword(newPassword);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+  
+  return true;
+}
+
+
+// === 5. EXPORTS ===
 module.exports = {
   loginUser,
   registerUser,
   sanitizeUser,
-  verifyToken
+  verifyToken,
+  generateResetToken,
+  resetPasswordWithToken
 };

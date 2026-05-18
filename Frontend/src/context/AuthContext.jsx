@@ -8,6 +8,8 @@ import {
   loginUserApi,
   persistSession,
   registerUserApi,
+  resetPasswordApi,
+  updatePasswordApi,
 } from '../services/api'
 import { getApiErrorMessage } from '../lib/utils'
 
@@ -67,6 +69,14 @@ export function AuthProvider({ children }) {
 
     bootstrap()
 
+    // Check for password reset token in URL
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('resetToken')
+    if (token) {
+      setAuthMode('new-password')
+      setIsAuthOpen(true)
+    }
+
     return () => {
       ignore = true
     }
@@ -115,6 +125,22 @@ export function AuthProvider({ children }) {
     setAuthError('')
 
     try {
+      if (mode === 'reset') {
+        await resetPasswordApi({ email })
+        return { success: true, mode: 'reset' }
+      }
+
+      if (mode === 'new-password') {
+        const params = new URLSearchParams(window.location.search)
+        const token = params.get('resetToken')
+        await updatePasswordApi({ token, password })
+        
+        // Clear the token from the URL cleanly
+        window.history.replaceState({}, document.title, window.location.pathname)
+        
+        return { success: true, mode: 'new-password' }
+      }
+
       const nextSession = mode === 'register'
         ? await registerUserApi({ name, email, password })
         : await loginUserApi({ email, password })

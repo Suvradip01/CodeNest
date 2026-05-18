@@ -97,6 +97,16 @@ export async function loginUserApi(payload) {
   return res.data
 }
 
+export async function resetPasswordApi(payload) {
+  const res = await apiClient.post('/auth/reset-password', payload)
+  return res.data
+}
+
+export async function updatePasswordApi(payload) {
+  const res = await apiClient.post('/auth/update-password', payload)
+  return res.data
+}
+
 export async function getCurrentUserApi() {
   const res = await apiClient.get('/auth/me')
   return res.data.user
