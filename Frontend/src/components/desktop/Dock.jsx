@@ -40,13 +40,17 @@ export default function Dock({ apps, isFinderOpen, onLaunchApp, launchingApp }) 
             {app.label}
           </div>
 
-          {/* Icon Container */}
+          {/* Icon Container - Renders the pure icon logo on a transparent background */}
           <div 
-            className={`w-full h-full rounded-[16px] cursor-pointer shadow-lg flex items-center justify-center transition-transform duration-300 overflow-hidden ${launchingApp === app.id ? 'animate-macos-bounce shadow-[0_0_20px_rgba(59,130,246,0.3)]' : ''}`}
+            className={`w-full h-full rounded-[16px] cursor-pointer flex items-center justify-center overflow-hidden bg-transparent ${
+              app.id === 'vscode' || launchingApp === app.id 
+                ? 'animate-macos-bounce' 
+                : 'transition-transform duration-300 hover:scale-105'
+            }`}
           >
             <img 
               src={app.path} 
-              className="w-full h-full object-cover select-none pointer-events-none" 
+              className="w-full h-full object-contain select-none pointer-events-none" 
               alt={app.label}
             />
           </div>
