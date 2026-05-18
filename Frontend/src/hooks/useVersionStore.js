@@ -23,9 +23,11 @@ function uid() {
   return Math.random().toString(36).slice(2, 10)
 }
 
+// Hook that controls local code version snapshots, providing an in-browser git-like revision timeline.
 export function useVersionStore() {
   const [store, setStore] = useState(loadStore)
 
+  // Helper to run state updaters and immediately synchronize the versions array to local storage.
   const persist = useCallback((updater) => {
     setStore(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater
@@ -34,7 +36,7 @@ export function useVersionStore() {
     })
   }, [])
 
-  // Save a new snapshot; auto-prune if over MAX_VERSIONS
+  // Saves a new programmatic snapshot and prunes older versions if maximum thresholds are crossed.
   const saveSnapshot = useCallback((code, language, label) => {
     const snap = { id: uid(), timestamp: Date.now(), language, code, label: label || null }
     persist(prev => {
@@ -44,17 +46,17 @@ export function useVersionStore() {
     return snap
   }, [persist])
 
-  // Delete a single snapshot by id
+  // Removes a specific revision snapshot from history collections.
   const deleteSnapshot = useCallback((id) => {
     persist(prev => ({ versions: prev.versions.filter(v => v.id !== id) }))
   }, [persist])
 
-  // Clear all snapshots
+  // Purges the entire programmatic version snapshot history.
   const clearAll = useCallback(() => {
     persist({ versions: [] })
   }, [persist])
 
-  // Label a snapshot (e.g. "Before refactor")
+  // Appends a custom text label to help identify a specific revision snapshot.
   const labelSnapshot = useCallback((id, label) => {
     persist(prev => ({
       versions: prev.versions.map(v => v.id === id ? { ...v, label } : v)

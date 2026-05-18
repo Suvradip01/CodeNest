@@ -19,6 +19,7 @@ export const SNIPPETS = {
   c: `/*\n * Print "Hello, World!"\n */\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`,
 }
 
+// Central controller managing active document code status, compilation, debugging, and AI assistants.
 export function useWorkspace() {
   const { session } = useAuth()
   const workspaceEnabled = Boolean(session?.token)
@@ -54,7 +55,7 @@ export function useWorkspace() {
   const lastSavedCode = useRef(code)
   const isSaving = useRef(false)
 
-  // Live Hints Check Effect
+  // Live Hints Check Effect: scans active code dynamically 2 seconds after keypress events halt.
   useEffect(() => {
     if (!showLivePanel) return
 
@@ -81,7 +82,7 @@ export function useWorkspace() {
     return () => clearTimeout(liveDebounceRef.current)
   }, [code, language, showLivePanel])
 
-  // Auto-save Effect
+  // Auto-save Effect: backs up code documents to server databases 2 seconds after typing halts.
   useEffect(() => {
     if (!activeFileId || !activeProjectId || isSaving.current) return
     if (code === lastSavedCode.current) return
@@ -103,6 +104,7 @@ export function useWorkspace() {
     return () => clearTimeout(saveDebounceRef.current)
   }, [activeFileId, activeProjectId, code, updateFileContent])
 
+  // Clears console streams and updates typing scopes when selecting files from the explorer.
   const handleFileOpen = useCallback((file, nextLanguage) => {
     const nextCode = file.content || SNIPPETS[nextLanguage] || ''
     setCode(nextCode)
@@ -115,6 +117,7 @@ export function useWorkspace() {
     setFixResult(null)
   }, [])
 
+  // Invokes AI principal auditor to evaluate active code blocks and return detailed critiques.
   const reviewCode = useCallback(async () => {
     versionStore.saveSnapshot(code, language, 'Before review')
     try {
@@ -126,6 +129,7 @@ export function useWorkspace() {
     }
   }, [code, language, versionStore])
 
+  // Saves current code state to active timeline registers and starts compilation triggers.
   const runCode = useCallback(async () => {
     versionStore.saveSnapshot(code, language)
 
@@ -152,6 +156,7 @@ export function useWorkspace() {
     }
   }, [code, language, versionStore])
 
+  // Interprets natural-language prompt instructions to update active editor code models.
   const applyPrompt = useCallback(async () => {
     try {
       const result = await editCode(prompt, code)
@@ -164,6 +169,7 @@ export function useWorkspace() {
     }
   }, [code, prompt])
 
+  // Triggers asynchronous code correction, replacing erroneous source with patched AI overlays.
   const handleAutoFix = useCallback(async () => {
     if (!stderrLines.length && !hasError) return
 
@@ -191,6 +197,7 @@ export function useWorkspace() {
     }
   }, [code, hasError, language, output, stderrLines, versionStore])
 
+  // Queries AI engine to compile dynamic Mermaid flowchart diagrams based on code statement trees.
   const handleVisualize = useCallback(async () => {
     setIsVisualizing(true)
     setMermaidDiagram('')
@@ -206,6 +213,7 @@ export function useWorkspace() {
     }
   }, [code, language])
 
+  // Resets active code text to a previous local memory snapshot from the history list.
   const handleRestore = useCallback((snapshotCode, snapshotLanguage) => {
     versionStore.saveSnapshot(code, language, 'Before restore')
     setCode(snapshotCode)

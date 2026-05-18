@@ -9,6 +9,7 @@ const INITIAL_FORM = {
 
 const EMAIL_REGEX = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i
 
+// Interactive account gateway rendering Login, Registration, Recovery, and Password Update modes.
 export default function AuthDialog({
   open,
   mode = 'login',
@@ -29,6 +30,7 @@ export default function AuthDialog({
   const contentRef = useRef(null)
   const [height, setHeight] = useState('auto')
 
+  // Measures scroll heights to apply smooth CSS height transitions during screen mode switches.
   useEffect(() => {
     if (open && contentRef.current) {
       setHeight(contentRef.current.scrollHeight)
@@ -37,11 +39,13 @@ export default function AuthDialog({
 
   if (!open) return null
 
+  // Updates form state values and clears active validation error lines dynamically.
   const handleChange = (field) => (event) => {
     setForm(prev => ({ ...prev, [field]: event.target.value }))
     setLocalError('')
   }
 
+  // Validates inputs, enforcing email syntax regexes and 8-character password lengths.
   const validateForm = () => {
     const email = form.email.trim().toLowerCase()
     const password = form.password
@@ -53,6 +57,7 @@ export default function AuthDialog({
     return ''
   }
 
+  // Checks fields and dispatches credential payloads to central AuthContext handlers.
   const handleSubmit = async (event) => {
     event.preventDefault()
     const validationError = validateForm()

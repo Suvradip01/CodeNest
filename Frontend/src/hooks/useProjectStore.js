@@ -9,12 +9,14 @@ import {
   deleteProjectApi,
 } from '../services/api'
 
+// Custom store that syncs candidate project folders and files to database endpoints in real-time.
 export function useProjectStore({ enabled = true } = {}) {
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(Boolean(enabled))
   const [activeProjectId, setActiveProjectId] = useState(null)
   const [activeFileId, setActiveFileId] = useState(null)
 
+  // Clears all active directory registers and file states from memory upon signing out.
   const reset = useCallback(() => {
     setProjects([])
     setActiveProjectId(null)
@@ -22,6 +24,7 @@ export function useProjectStore({ enabled = true } = {}) {
     setIsLoading(false)
   }, [])
 
+  // Syncs projects list from the server databases and filters out stale indices.
   const reloadProjects = useCallback(async () => {
     if (!enabled) {
       reset()
@@ -56,6 +59,7 @@ export function useProjectStore({ enabled = true } = {}) {
     reloadProjects().catch(() => {})
   }, [enabled, reloadProjects, reset])
 
+  // Submits a new workspace folder request to create a project in the database.
   const createProject = useCallback(async (name) => {
     const newProject = await createProjectApi(name)
     setProjects(prev => [...prev, newProject])
@@ -64,6 +68,7 @@ export function useProjectStore({ enabled = true } = {}) {
     return newProject
   }, [])
 
+  // Modifies a selected project name and updates active state metadata.
   const renameProject = useCallback(async (projectId, nextName) => {
     const renamed = await renameProjectApi(projectId, nextName)
     setProjects(prev => prev.map(project => (
@@ -72,6 +77,7 @@ export function useProjectStore({ enabled = true } = {}) {
     return renamed
   }, [])
 
+  // Permanently deletes a project folder from the candidate database.
   const deleteProject = useCallback(async (projectId) => {
     await deleteProjectApi(projectId)
     setProjects(prev => prev.filter(project => project.id !== projectId))
@@ -81,6 +87,7 @@ export function useProjectStore({ enabled = true } = {}) {
     }
   }, [activeProjectId])
 
+  // Creates a new file document, automatically appending correct program extensions.
   const createFile = useCallback(async (projectId, name, language = 'javascript', content = '') => {
     let fileName = name
     if (!fileName.includes('.')) {
@@ -99,6 +106,7 @@ export function useProjectStore({ enabled = true } = {}) {
     return newFile
   }, [])
 
+  // Modifies file names and re-evaluates the programming language types based on suffixes.
   const renameFile = useCallback(async (projectId, fileId, nextName) => {
     const renamed = await renameFileApi(projectId, fileId, nextName)
     setProjects(prev => prev.map(project => (
@@ -116,6 +124,7 @@ export function useProjectStore({ enabled = true } = {}) {
     return renamed
   }, [])
 
+  // Deletes a selected file document, clearing active selection keys cleanly.
   const deleteFile = useCallback(async (projectId, fileId) => {
     await deleteFileApi(projectId, fileId)
     setProjects(prev => prev.map(project => (
@@ -128,6 +137,7 @@ export function useProjectStore({ enabled = true } = {}) {
     }
   }, [activeFileId])
 
+  // Optimistically writes active buffer edits locally before pushing save updates.
   const updateFileContent = useCallback(async (projectId, fileId, content) => {
     setProjects(prev => prev.map(project => (
       project.id === projectId

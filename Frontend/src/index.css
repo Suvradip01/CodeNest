@@ -157,10 +157,28 @@
     @apply border-border outline-ring/50;
   }
 
-  html, body {
+  html,
+  body {
     height: 100%;
     margin: 0;
     padding: 0;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
   }
 
   body {
@@ -386,15 +404,18 @@
   width: 8px;
   height: 8px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(124, 58, 237, 0.3);
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
+
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
   background: rgba(124, 58, 237, 0.6);
   background-clip: content-box;
@@ -432,12 +453,10 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent);
   transition: 0.5s;
 }
 
@@ -446,61 +465,175 @@
 }
 
 @keyframes float-icon {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-3px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 /* ── Extracted Component Animations (moved from inline JSX <style> tags) ── */
 
 /* EditorPanel — Run button warp effect */
 @keyframes lightBlueWarp {
-  0%   { transform: translateX(-40px) scaleX(1.4); opacity: 0; filter: blur(3px); }
-  20%  { transform: translateX(0px)   scaleX(1);   opacity: 1; filter: blur(0px); }
-  80%  { transform: translateX(0px)   scaleX(1);   opacity: 1; filter: blur(0px); }
-  100% { transform: translateX(40px)  scaleX(1.4); opacity: 0; filter: blur(3px); }
+  0% {
+    transform: translateX(-40px) scaleX(1.4);
+    opacity: 0;
+    filter: blur(3px);
+  }
+
+  20% {
+    transform: translateX(0px) scaleX(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  80% {
+    transform: translateX(0px) scaleX(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+
+  100% {
+    transform: translateX(40px) scaleX(1.4);
+    opacity: 0;
+    filter: blur(3px);
+  }
 }
+
 .animate-blue-warp {
   animation: lightBlueWarp 1.5s infinite cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 /* Desktop — macOS-style dock icon bounce */
 @keyframes macos-bounce {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50%       { transform: translate3d(0, -20px, 0); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -20px, 0);
+  }
 }
+
 .animate-macos-bounce {
   animation: macos-bounce 0.8s ease-in-out infinite;
   will-change: transform;
 }
+
 .dock-item {
   will-change: transform, width, height, margin-bottom;
 }
 
 /* ReviewPanel — floating bot icon idle animation */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
 
 /* DebugPanel — pulsing red glow border */
 @keyframes glitch-border {
-  0%, 100% { box-shadow: 0 0 15px rgba(239,68,68,0.2),  0 0 30px rgba(239,68,68,0.08); }
-  50%       { box-shadow: 0 0 25px rgba(239,68,68,0.35), 0 0 50px rgba(239,68,68,0.12); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2), 0 0 30px rgba(239, 68, 68, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.35), 0 0 50px rgba(239, 68, 68, 0.12);
+  }
 }
+
 .debug-glow {
   animation: glitch-border 2s ease-in-out infinite;
 }
 
 /* DashboardView — page enter transition */
 @keyframes dashboard-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-dashboard-enter {
   animation: dashboard-enter 0.5s ease-out forwards;
 }
 
-
+/* macOS-style Zoom App Animations */
+@keyframes app-zoom-open {
+  0% {
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.08);
+    opacity: 0.1;
+    border-radius: 20px;
+  }
+  100% {
+    bottom: 0px;
+    left: 0%;
+    transform: translateX(0) scale(1);
+    width: 100vw;
+    height: 100vh;
+    opacity: 1;
+    border-radius: 0px;
+  }
+}
+
+.animate-app-zoom-open {
+  animation: app-zoom-open 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: fixed;
+  width: 64px;
+  height: 64px;
+  transform-origin: bottom center;
+}
+
+@keyframes app-zoom-close {
+  0% {
+    top: 0px;
+    left: 0%;
+    transform: translateX(0) scale(1);
+    width: 100vw;
+    height: 100vh;
+    opacity: 1;
+    border-radius: 0px;
+  }
+  100% {
+    top: auto;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.08);
+    width: 64px;
+    height: 64px;
+    opacity: 0;
+    border-radius: 20px;
+  }
+}
+
+.animate-app-zoom-close {
+  animation: app-zoom-close 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  position: fixed;
+  transform-origin: bottom center;
+}

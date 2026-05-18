@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+// Header toolbar hosting application brand logos, project toggles, language select dropdowns, and theme togglers.
 export default function Topbar({
   brand = 'CodeNest',
   language,

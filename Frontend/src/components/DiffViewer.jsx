@@ -5,6 +5,7 @@ import React, { useMemo } from 'react'
 //   oldCode: string
 //   newCode: string
 
+// Computes line-by-line programmatic diffs using LCS (Longest Common Subsequence) algorithms.
 function computeDiff(oldLines, newLines) {
   // Simple LCS-based diff
   const m = oldLines.length, n = newLines.length
@@ -30,6 +31,7 @@ function computeDiff(oldLines, newLines) {
   return result
 }
 
+// Side-by-side Git diff viewer panel mapping green line additions and red line deletions.
 export default function DiffViewer({ oldCode = '', newCode = '' }) {
   const diff = useMemo(() => computeDiff(
     oldCode.split('\n'),

@@ -8,9 +8,11 @@ import { Sparkles, Send, Loader2 } from 'lucide-react'
 // - setPrompt: state setter for prompt
 // - onApply: click handler to send prompt + code to backend
 
+// Interactive input drawer allowing users to send natural-language instructions to edit code.
 export default function PromptPanel({ prompt, setPrompt, onApply }) {
   const [isLoading, setIsLoading] = useState(false)
 
+  // Triggers LLM code-editing tasks, clearing prompt text on successful patch returns.
   const handleApply = async () => {
     if (!prompt.trim() || isLoading) return
     setIsLoading(true)
@@ -22,6 +24,7 @@ export default function PromptPanel({ prompt, setPrompt, onApply }) {
     }
   }
 
+  // Intercepts Enter triggers to submit prompts quickly without Shift modifiers.
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()

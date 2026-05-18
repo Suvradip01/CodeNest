@@ -15,6 +15,7 @@ const COMPLEXITY_CONFIG = {
   'Very Complex': { color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', dot: 'bg-red-400' },
 }
 
+// Floating notification card listing AI-generated lint messages, tips, and program complexity scopes.
 export default function LiveHintsPanel({ hints, isLoading, onClose }) {
   const [collapsed, setCollapsed] = useState(false)
 

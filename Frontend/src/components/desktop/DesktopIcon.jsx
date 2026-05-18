@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 
+// Interactive desktop icon representing a shortcut, enabling fluid pointer-drag positioning.
 export default function DesktopIcon({ label, iconPath, onOpen }) {
   const [pos, setPos] = useState({ x: 50, y: 80 });
   const [isDragging, setIsDragging] = useState(false);

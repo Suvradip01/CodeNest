@@ -6,6 +6,7 @@ const ThemeProviderContext = createContext({
     setTheme: () => null,
 })
 
+// React provider coordinating system media queries and local storage tokens for active light/dark color themes.
 export function ThemeProvider({
     children,
     defaultTheme = "system",
@@ -49,6 +50,7 @@ export function ThemeProvider({
     )
 }
 
+// Hook utility to consume the active theme variables and triggers.
 export const useTheme = () => {
     const context = useContext(ThemeProviderContext)
 

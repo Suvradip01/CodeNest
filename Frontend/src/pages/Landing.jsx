@@ -3,6 +3,7 @@ import AuthDialog from '../components/AuthDialog'
 import { useAuth } from '../hooks/useAuth'
 import { AUTH_REQUIRED } from '../config/constants'
 
+// Entry point component that aggregates the presentation LandingPage container with security AuthDialog modals.
 export default function Landing() {
   const {
     session,

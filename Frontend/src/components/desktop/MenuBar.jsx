@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Monitor, Wifi, Battery, Search } from 'lucide-react';
+import { Monitor, Wifi, Battery, Search, Power } from 'lucide-react';
 
-export default function MenuBar() {
+export default function MenuBar({ onPowerOff }) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -26,7 +26,14 @@ export default function MenuBar() {
         <Wifi className="w-3.5 h-3.5" />
         <Battery className="w-3.5 h-3.5" />
         <Search className="w-3.5 h-3.5" />
-        <div className="flex items-center gap-2 tabular-nums opacity-90">
+        <button 
+          onClick={onPowerOff} 
+          title="Power Off"
+          className="opacity-70 hover:opacity-100 hover:text-red-400 transition-all duration-300 ml-1"
+        >
+          <Power className="w-3.5 h-3.5" />
+        </button>
+        <div className="flex items-center gap-2 tabular-nums opacity-90 ml-1">
           <span>{formatDate(time)}</span>
           <span>{formatTime(time)}</span>
         </div>

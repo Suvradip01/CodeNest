@@ -15,6 +15,7 @@ import { explainDiff } from '../services/api'
 import { useNavigate } from 'react-router-dom'
 import { AUTH_REQUIRED } from '../config/constants'
 
+// Principal dashboard container rendering the unified full-stack IDE workspace panels.
 export default function DashboardView() {
   const navigate = useNavigate()
   const {
@@ -99,7 +100,10 @@ export default function DashboardView() {
           onToggleVersions={() => setShowVersionPanel(current => !current)}
           isVisualizing={isVisualizing}
           onVisualize={handleVisualize}
-          onGoHome={() => navigate('/desktop')}
+          onGoHome={() => {
+            sessionStorage.setItem('codenest_closing', 'true');
+            navigate('/desktop');
+          }}
           session={session}
           authRequired={AUTH_REQUIRED}
           onOpenAuth={() => openAuth('login')}

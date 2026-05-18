@@ -7,6 +7,7 @@ import { Bug } from 'lucide-react'
 // - hasError: boolean — true when stderr was detected
 // - onDebug: () => void — triggers AI debug mode
 
+// Interactive console wrapper displaying stdout output feeds and error diagnostic paths.
 export default function TerminalPanel({ output, hasError, onDebug }) {
   return (
     <div className={`bg-white/60 dark:bg-zinc-900/50 backdrop-blur-xl border rounded-2xl overflow-hidden flex flex-col h-full shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] group relative ${
@@ -21,7 +22,7 @@ export default function TerminalPanel({ output, hasError, onDebug }) {
           {hasError && <span className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-bold">ERR</span>}
         </span>
         <div className="flex items-center gap-2">
-          {/* AI Debug button — only shown when there's an error */}
+          {/* Floating debugger trigger: launches AI doctor analysis panel on standard compiler crashes. */}
           {hasError && onDebug && (
             <button
               onClick={onDebug}
@@ -40,12 +41,14 @@ export default function TerminalPanel({ output, hasError, onDebug }) {
       </div>
       <div className="p-0 card-scroll-container custom-scrollbar bg-background dark:bg-black">
         <div className="font-mono text-sm p-4 space-y-1.5">
+          {/* Idle state: prompt screen awaiting project compilation executions. */}
           {output.length === 0 ? (
             <div className="flex items-center gap-2 text-muted-foreground/40 italic animate-pulse p-2">
               <span className="text-emerald-600/50 dark:text-emerald-500/50">➜</span>
               Waiting for command execution...
             </div>
           ) : (
+            // Renders line-by-line arrays, applying static regex matching to paint error stacks in red.
             output.map((line, i) => {
               const isErr = hasError && (line.includes('Error') || line.includes('Traceback') || line.includes('Exception') || line.includes('error:'))
               return (

@@ -22,6 +22,7 @@ const LANG_COLORS = {
   c: 'text-cyan-600 dark:text-cyan-400',
 }
 
+// Input text area styled like an IDE, utilizing PrismJS for real-time multi-language syntax highlighting.
 export default function EditorPanel({ code, setCode, onRun, language = 'javascript' }) {
   const langKey = language.toLowerCase()
   return (

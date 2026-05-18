@@ -10,9 +10,12 @@ import { Bug, Wrench, X, Loader2, ChevronDown, ChevronUp, AlertCircle, CheckCirc
 //   isFixing: boolean
 //   fixResult: { errorType, explanation, fixedCode } | null
 
+// Displays compile exceptions and lets candidates trigger one-click AI hotfixes.
 export default function DebugPanel({ debugInfo, onAutoFix, onClose, isFixing, fixResult }) {
+  // Tracks whether the debug panel is expanded or minimized.
   const [expanded, setExpanded] = useState(true)
 
+  // Returns empty if there are no active compiler error stacks to display.
   if (!debugInfo) return null
 
   return (
@@ -44,7 +47,7 @@ export default function DebugPanel({ debugInfo, onAutoFix, onClose, isFixing, fi
 
       {expanded && (
         <div className="p-4 space-y-3">
-          {/* Error Output */}
+          {/* Scrollable container displaying the raw compiler stderr lines */}
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-red-400/70 mb-1.5 flex items-center gap-1.5">
               <AlertCircle className="w-3 h-3" /> Error Output
@@ -56,7 +59,7 @@ export default function DebugPanel({ debugInfo, onAutoFix, onClose, isFixing, fi
             </div>
           </div>
 
-          {/* AI Explanation */}
+          {/* AI Explanation card rendering description of error cause and patch suggestions */}
           {fixResult && (
             <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-1.5">AI Explanation</p>
@@ -64,7 +67,7 @@ export default function DebugPanel({ debugInfo, onAutoFix, onClose, isFixing, fi
             </div>
           )}
 
-          {/* Action */}
+          {/* Action triggers: shoots a secure prompt to the AI doctor for instant patch overlays */}
           <div className="flex items-center gap-3">
             {!fixResult && (
               <button

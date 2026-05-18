@@ -30,6 +30,7 @@ const LANG_EXT = {
   c: '.c',
 }
 
+// Small reusable text field overlay used to capture file/folder name edits inline.
 function InlineInput({ placeholder, defaultValue = '', onConfirm, onCancel }) {
   const [value, setValue] = useState(defaultValue)
 
@@ -56,6 +57,7 @@ function InlineInput({ placeholder, defaultValue = '', onConfirm, onCancel }) {
   )
 }
 
+// Main file explorer sidebar displaying candidate projects and their nested document streams.
 export default function ProjectSidebar({ store, onFileOpen, onClose }) {
   const {
     projects,
@@ -85,6 +87,7 @@ export default function ProjectSidebar({ store, onFileOpen, onClose }) {
     setExpandedProjects(current => ({ ...current, [projectId]: !current[projectId] }))
   }
 
+  // Intercepts state actions inside dynamic loading streams to handle exceptions gracefully.
   const withTask = async (task) => {
     setSidebarError('')
     setIsBusy(true)
@@ -98,6 +101,7 @@ export default function ProjectSidebar({ store, onFileOpen, onClose }) {
     }
   }
 
+  // Requests a new workspace project container and expands its folders upon return.
   const handleCreateProject = async (name) => {
     if (!name.trim()) {
       setAddingProject(false)

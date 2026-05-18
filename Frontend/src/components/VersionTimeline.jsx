@@ -26,6 +26,7 @@ function timeAgo(ts) {
 
 const LANG_COLOR = { javascript: '#f7df1e', python: '#3572A5', java: '#b07219', c: '#555555' }
 
+// Side drawer container listing local code snapshots, facilitating time-travel restore, line diffing, and AI delta explainers.
 export default function VersionTimeline({
   versions, currentCode, onRestore, onExplainDiff, onDelete, onClear, onLabel, onClose
 }) {

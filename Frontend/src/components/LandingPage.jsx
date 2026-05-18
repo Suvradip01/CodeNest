@@ -13,6 +13,7 @@ import {
   UserRound,
 } from 'lucide-react'
 
+// Hook producing animated typewriter text effects for landing page headers.
 function useTyping(words, speed = 75, pause = 2000) {
   const [idx, setIdx] = useState(0)
   const [char, setChar] = useState(0)
@@ -128,6 +129,7 @@ const FLOAT = [
 
 const LANGS = ['JavaScript', 'Python', 'Java', 'C']
 
+// Visual presentation layout displaying marketing headlines, typed catchphrases, and animated feature cards.
 export default function LandingPage({
   onLaunch,
   onSignIn,

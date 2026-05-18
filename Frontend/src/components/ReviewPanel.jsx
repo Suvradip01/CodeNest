@@ -7,7 +7,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { toPng } from 'html-to-image'
 import { useTheme } from './theme-provider'
 
-// MermaidRenderer — renders a mermaid diagram string into SVG with Zoom/Pan
+// Mermaid layout renderer leveraging react-zoom-pan-pinch interfaces and HTML-to-image exports.
 function MermaidRenderer({ diagram }) {
   const ref = useRef(null)
   const [error, setError] = useState(null)
@@ -146,7 +146,7 @@ function MermaidRenderer({ diagram }) {
   )
 }
 
-
+// Interactive report card hosting markdown AI review listings and live system flowchart tabs side-by-side.
 export default function ReviewPanel({ review, mermaidDiagram, isVisualizing }) {
   const [activeTab, setActiveTab] = useState('review')
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Dock({ apps, isFinderOpen, onLaunchApp }) {
+export default function Dock({ apps, isFinderOpen, onLaunchApp, launchingApp }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [dockScale, setDockScale] = useState(Array(apps.length).fill(1));
 
@@ -42,7 +42,7 @@ export default function Dock({ apps, isFinderOpen, onLaunchApp }) {
 
           {/* Icon Container */}
           <div 
-            className={`w-full h-full rounded-[16px] cursor-pointer shadow-lg flex items-center justify-center transition-transform duration-300 overflow-hidden ${app.id === 'vscode' ? 'animate-macos-bounce shadow-[0_0_20px_rgba(59,130,246,0.3)]' : ''}`}
+            className={`w-full h-full rounded-[16px] cursor-pointer shadow-lg flex items-center justify-center transition-transform duration-300 overflow-hidden ${launchingApp === app.id ? 'animate-macos-bounce shadow-[0_0_20px_rgba(59,130,246,0.3)]' : ''}`}
           >
             <img 
               src={app.path} 
