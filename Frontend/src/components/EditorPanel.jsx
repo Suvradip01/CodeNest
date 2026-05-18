@@ -37,27 +37,13 @@ export default function EditorPanel({ code, setCode, onRun, language = 'javascri
           size="sm"
           className="group relative h-9 w-14 overflow-hidden rounded-lg bg-sky-100 text-sky-900 border border-sky-200 dark:bg-slate-900 dark:text-sky-400 dark:border-sky-500/40 transition-all duration-500 hover:border-sky-400 hover:bg-sky-200 dark:hover:bg-sky-500/10 hover:shadow-lg dark:hover:shadow-[0_0_25px_rgba(0,210,255,0.3)] active:scale-95"
         >
-          {/* Slower, Premium Light Blue Warp Animation */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-    @keyframes lightBlueWarp {
-      0% { transform: translateX(-40px) scaleX(1.4); opacity: 0; filter: blur(3px); }
-      20% { transform: translateX(0px) scaleX(1); opacity: 1; filter: blur(0px); }
-      80% { transform: translateX(0px) scaleX(1); opacity: 1; filter: blur(0px); }
-      100% { transform: translateX(40px) scaleX(1.4); opacity: 0; filter: blur(3px); }
-    }
-    .animate-blue-warp { 
-      animation: lightBlueWarp 1.5s infinite cubic-bezier(0.45, 0, 0.55, 1); 
-    }
-  `}} />
-
-          {/* Static Icon (Azure/Sky Blue) */}
+          {/* Static Icon */}
           <Play
             className="w-4 h-4 transition-all duration-700 group-hover:opacity-0 group-hover:scale-150 group-hover:blur-md"
             fill="currentColor"
           />
 
-          {/* Looping Icon (The "Light Blue" Warp Layer) */}
+          {/* Warp animation icon — class defined in index.css */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
             <Play
               className="w-4 h-4 animate-blue-warp fill-sky-600 dark:fill-sky-400"

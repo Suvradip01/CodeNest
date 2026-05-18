@@ -28,21 +28,6 @@ export default function Desktop({ onLaunchEditor }) {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-[#000] font-sans select-none animate-in fade-in duration-700">
-      {/* Global Performance Styles */}
-      <style>{`
-        @keyframes macos-bounce {
-          0%, 100% { transform: translate3d(0, 0, 0); }
-          50% { transform: translate3d(0, -20px, 0); }
-        }
-        .animate-macos-bounce {
-          animation: macos-bounce 0.8s ease-in-out infinite;
-          will-change: transform;
-        }
-        .dock-item {
-          will-change: transform, width, height, margin-bottom;
-        }
-      `}</style>
-      
       {/* ── Background Layer ── */}
       <div className="absolute inset-0">
         <img 

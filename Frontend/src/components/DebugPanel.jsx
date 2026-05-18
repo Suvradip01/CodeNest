@@ -18,13 +18,6 @@ export default function DebugPanel({ debugInfo, onAutoFix, onClose, isFixing, fi
   return (
     <div className="relative rounded-2xl overflow-hidden border border-red-500/30 bg-black/70 backdrop-blur-xl shadow-[0_0_40px_rgba(239,68,68,0.15)] animate-in slide-in-from-bottom-4 duration-300">
       {/* Animated glitch border */}
-      <style>{`
-        @keyframes glitch-border {
-          0%, 100% { box-shadow: 0 0 15px rgba(239,68,68,0.2), 0 0 30px rgba(239,68,68,0.08); }
-          50% { box-shadow: 0 0 25px rgba(239,68,68,0.35), 0 0 50px rgba(239,68,68,0.12); }
-        }
-        .debug-glow { animation: glitch-border 2s ease-in-out infinite; }
-      `}</style>
 
       {/* Header */}
       <div className="debug-glow flex items-center justify-between px-4 py-3 bg-red-500/10 border-b border-red-500/20">

@@ -78,7 +78,9 @@ if (bootSession?.token) {
   setAuthToken(bootSession.token)
 }
 
-console.log('[CodeNest] Connecting to Backend at:', BASE)
+if (import.meta.env.DEV) {
+  console.log('[CodeNest] Connecting to Backend at:', BASE)
+}
 
 export async function fetchHealth() {
   const res = await apiClient.get('/health')

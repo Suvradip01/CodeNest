@@ -151,7 +151,7 @@ async function loginUser({ email, password }) {
 }
 
 
-// === EXPORTS ===
+// === 4. EXPORTS ===
 module.exports = {
   loginUser,
   registerUser,

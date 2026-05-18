@@ -5,21 +5,17 @@ import { Bot, GitFork, Loader2, ZoomIn, ZoomOut, Maximize2, Download, RefreshCw 
 import mermaid from 'mermaid'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { toPng } from 'html-to-image'
+import { useTheme } from './theme-provider'
 
 // MermaidRenderer — renders a mermaid diagram string into SVG with Zoom/Pan
 function MermaidRenderer({ diagram }) {
   const ref = useRef(null)
   const [error, setError] = useState(null)
-  const [isDarkMode, setIsDarkMode] = useState(document.documentElement.classList.contains('dark'))
+  const [downloadError, setDownloadError] = useState('')
+  const { theme } = useTheme()
+  const isDarkMode = theme === 'dark'
   const [isRendering, setIsRendering] = useState(false)
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
-    })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     if (!ref.current || !diagram) return
@@ -59,10 +55,11 @@ function MermaidRenderer({ diagram }) {
   const handleDownload = async () => {
     const svgEl = ref.current?.querySelector('svg')
     if (!svgEl) return
+    setDownloadError('')
     try {
-      const dataUrl = await toPng(svgEl, { 
+      const dataUrl = await toPng(svgEl, {
         backgroundColor: isDarkMode ? '#09090b' : '#ffffff',
-        pixelRatio: 3, // High resolution
+        pixelRatio: 3,
         style: { transform: 'none', padding: '20px' }
       })
       const link = document.createElement('a')
@@ -71,7 +68,7 @@ function MermaidRenderer({ diagram }) {
       link.click()
     } catch (err) {
       console.error('Download failed:', err)
-      alert('Failed to generate PNG. Try again or check console.')
+      setDownloadError('Failed to export PNG. Please try again.')
     }
   }
 
@@ -100,20 +97,27 @@ function MermaidRenderer({ diagram }) {
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
-            {/* Toolbar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 p-1.5 bg-background/80 backdrop-blur-xl border border-border rounded-2xl shadow-2xl opacity-0 group-hover/render:opacity-100 transition-all duration-300 transform translate-y-2 group-hover/render:translate-y-0">
-              <div className="flex items-center gap-1 px-1 border-r border-border mr-1">
-                <button onClick={() => zoomIn()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
-                <button onClick={() => zoomOut()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
-                <button onClick={() => resetTransform()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Reset View"><RefreshCw className="w-4 h-4" /></button>
+      {/* Toolbar */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 opacity-0 group-hover/render:opacity-100 transition-all duration-300 transform translate-y-2 group-hover/render:translate-y-0">
+              {downloadError && (
+                <div className="px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-medium">
+                  {downloadError}
+                </div>
+              )}
+              <div className="flex items-center gap-2 p-1.5 bg-background/80 backdrop-blur-xl border border-border rounded-2xl shadow-2xl">
+                <div className="flex items-center gap-1 px-1 border-r border-border mr-1">
+                  <button onClick={() => zoomIn()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
+                  <button onClick={() => zoomOut()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
+                  <button onClick={() => resetTransform()} className="p-2 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-colors" title="Reset View"><RefreshCw className="w-4 h-4" /></button>
+                </div>
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download PNG
+                </button>
               </div>
-              <button 
-                onClick={handleDownload} 
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download PNG
-              </button>
             </div>
             
             <div className="flex-1 w-full h-full cursor-grab active:cursor-grabbing overflow-hidden">
@@ -210,13 +214,7 @@ export default function ReviewPanel({ review, mermaidDiagram, isVisualizing }) {
             <div className="flex-1 flex flex-col items-center justify-center h-full min-h-[300px]">
               <div className="relative mb-8">
                 <div className="absolute -inset-10 bg-purple-500/5 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
-                <div className="relative animate-[float_3s_ease-in-out_infinite]">
-                  <style>{`
-                    @keyframes float {
-                      0%, 100% { transform: translateY(0px); }
-                      50% { transform: translateY(-20px); }
-                    }
-                  `}</style>
+                <div className="relative animate-float">
                   <div className="p-7 rounded-[2.5rem] bg-gradient-to-b from-white/50 to-white/10 dark:from-white/[0.05] dark:to-transparent border border-black/5 dark:border-white/10 shadow-xl dark:shadow-2xl backdrop-blur-sm transition-transform duration-700 hover:scale-110">
                     <Bot className="w-12 h-12 text-purple-600 dark:text-purple-400/80 drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
                   </div>

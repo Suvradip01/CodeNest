@@ -98,9 +98,17 @@ export default function VersionTimeline({
             <DiffViewer oldCode={baseVersion?.code || ''} newCode={targetCode || ''} />
           </div>
           {explanation && (
-            <div className="px-4 py-3 text-xs text-white/70 border-t border-white/10 bg-violet-500/5 leading-relaxed prose prose-invert prose-sm max-w-none max-h-40 overflow-auto">
+            <div className="px-4 py-3 text-xs text-white/70 border-t border-white/10 bg-violet-500/5 leading-relaxed max-h-40 overflow-auto">
               <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400 mb-2 flex items-center gap-1"><Sparkles className="w-3 h-3" /> AI Explanation</p>
-              <div dangerouslySetInnerHTML={{ __html: explanation.replace(/\n/g, '<br/>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/^- /gm, '• ') }} />
+              <div className="space-y-1">
+                {explanation.split('\n').map((line, i) => (
+                  <p key={i} className="leading-relaxed whitespace-pre-wrap">
+                    {line.startsWith('- ') || line.startsWith('• ')
+                      ? <span>• {line.replace(/^[-•]\s*/, '')}</span>
+                      : line}
+                  </p>
+                ))}
+              </div>
             </div>
           )}
         </div>
