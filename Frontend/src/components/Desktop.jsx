@@ -27,7 +27,7 @@ export default function Desktop({ onLaunchEditor, onPowerOff }) {
       setTimeout(() => {
         onLaunchEditor();
         setLaunchingApp(null);
-      }, 350); // 350ms match with zoom keyframe open duration
+      }, 350); // Snappy 350ms macOS-style app zoom launch!
     }
     if (id === 'finder') {
       setIsFinderOpen(true);
