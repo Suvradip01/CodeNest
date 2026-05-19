@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { downloadProjectApi } from '../services/api'
+import { downloadProjectApi } from '../../services/api'
 
 const LANG_COLORS = {
   javascript: 'text-yellow-400',

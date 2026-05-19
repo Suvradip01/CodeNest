@@ -1,4 +1,4 @@
-name: CodeNest CI/CD (Industry Grade)
+name: CodeNest CI/CD
 
 on:
   push:

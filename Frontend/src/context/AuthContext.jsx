@@ -2,7 +2,6 @@ import { createContext, useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   clearStoredSession,
-  fetchHealth,
   getCurrentUserApi,
   getStoredSession,
   loginUserApi,
@@ -10,7 +9,8 @@ import {
   registerUserApi,
   resetPasswordApi,
   updatePasswordApi,
-} from '../services/api'
+} from '../features/auth/api'
+import { fetchHealth } from '../services/api'
 import { getApiErrorMessage } from '../lib/utils'
 
 export const AuthContext = createContext(null)

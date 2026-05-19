@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useTheme } from '../components/theme-provider'
+import { useTheme } from './theme-provider'
 import {
   Check,
   ChevronDown,

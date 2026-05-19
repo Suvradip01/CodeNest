@@ -5,7 +5,7 @@ import { Bot, GitFork, Loader2, ZoomIn, ZoomOut, Maximize2, Download, RefreshCw 
 import mermaid from 'mermaid'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { toPng } from 'html-to-image'
-import { useTheme } from './theme-provider'
+import { useTheme } from '@/components/common/theme-provider'
 
 // Mermaid layout renderer leveraging react-zoom-pan-pinch interfaces and HTML-to-image exports.
 function MermaidRenderer({ diagram }) {

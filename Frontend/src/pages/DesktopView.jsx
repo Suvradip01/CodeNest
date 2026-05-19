@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import Desktop from '../components/Desktop'
-import AuthDialog from '../components/AuthDialog'
-import { useAuth } from '../hooks/useAuth'
+import Desktop from '../components/common/Desktop'
+import AuthDialog from '../features/auth/components/AuthDialog'
+import { useAuth } from '../features/auth/hooks/useAuth'
 import { AUTH_REQUIRED } from '../config/constants'
 
 // Screen page component rendering the macOS desktop container and active background launcher.

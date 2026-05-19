@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useAuth } from './useAuth'
-import { useProjectStore } from './useProjectStore'
-import { useVersionStore } from './useVersionStore'
+import { useAuth } from '../features/auth/hooks/useAuth'
+import { useProjectStore } from '../features/projects/useProjectStore'
+import { useVersionStore } from '../features/versioning/useVersionStore'
 import {
   editCode,
   getReview,

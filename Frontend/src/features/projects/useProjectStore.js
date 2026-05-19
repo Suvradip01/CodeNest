@@ -7,7 +7,7 @@ import {
   renameFileApi,
   deleteFileApi,
   deleteProjectApi,
-} from '../services/api'
+} from '../../services/api'
 
 // Custom store that syncs candidate project folders and files to database endpoints in real-time.
 export function useProjectStore({ enabled = true } = {}) {
