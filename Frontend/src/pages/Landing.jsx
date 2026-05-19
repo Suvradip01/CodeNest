@@ -11,7 +11,7 @@ export default function Landing() {
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     })
 
@@ -43,6 +43,7 @@ export default function Landing() {
 
   return (
     <>
+      {/* Landing page UI with authentication launch actions and session-aware controls. */}
       <LandingPage
         onLaunch={handleLaunchWorkspace}
         onSignIn={() => openAuth('login')}
@@ -50,6 +51,8 @@ export default function Landing() {
         session={session}
         isBooting={authConfig.loading}
       />
+
+      {/* Authentication modal handling login, registration, password reset, and credential updates. */}
       <AuthDialog
         key={`landing-${authMode}`}
         open={isAuthOpen}

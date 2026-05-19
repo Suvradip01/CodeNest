@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+//url cleanup helper
 function stripTrailingSlashes(value) {
   return String(value || '').replace(/\/+$/, '')
 }
@@ -30,7 +31,7 @@ function resolveApiBaseUrl() {
 const BASE = resolveApiBaseUrl()
 const SESSION_KEY = 'codenest-session'
 
-// Main Axios instance configured with a baseline 20-second timeout limit.
+// Main Axios instance configured with a baseline 20-second timeout limit - prevent waiting req forever.
 export const apiClient = axios.create({
   baseURL: BASE,
   timeout: 20000,
@@ -80,6 +81,7 @@ export function clearStoredSession() {
   }
 }
 
+//restores login after page refresh.
 const bootSession = getStoredSession()
 if (bootSession?.token) {
   setAuthToken(bootSession.token)

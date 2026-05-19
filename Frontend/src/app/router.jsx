@@ -9,7 +9,7 @@ import ProtectedRoute from '../features/auth/components/ProtectedRoute'
 export function AppRouter() {
   return (
     <Routes>
-      {/* Unprotected Landing marketing hub */}
+      {/* Unprotected Landing */}
       <Route path="/" element={<Landing />} />
       
       {/* Private desktop launchpad - gated by session validation */}

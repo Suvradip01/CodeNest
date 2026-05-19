@@ -170,8 +170,7 @@ CodeNest/
 │       │   ├── ai/
 │       │   │   ├── ReviewPanel.jsx        # Markdown critiques + Mermaid drawings
 │       │   │   ├── PromptPanel.jsx        # Natural language instruction dock
-│       │   │   └── liveHints/
-│       │   │       └── LiveHintsPanel.jsx # Debounced lint warnings & complexity card
+│       │   │   └── LiveHintsPanel.jsx     # Debounced lint warnings & complexity card
 │       │   │
 │       │   ├── terminal/
 │       │   │   └── TerminalPanel.jsx      # Sandbox compilation console
@@ -713,7 +712,7 @@ Custom hook = lightweight global store (no Redux).
 - Textarea + Enter to submit (Shift+Enter for newline)
 - Calls `onApply` → `editCode` flow
 
-#### `LiveHintsPanel.jsx` (`src/features/ai/liveHints/LiveHintsPanel.jsx`)
+#### `LiveHintsPanel.jsx` (`src/features/ai/LiveHintsPanel.jsx`)
 
 - Fixed position top-right
 - Complexity badge colors (Simple → Very Complex)

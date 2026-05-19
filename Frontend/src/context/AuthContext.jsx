@@ -124,7 +124,7 @@ export function AuthProvider({ children }) {
     navigate('/dashboard')
   }, [authConfig.loading, openAuth, session?.token, navigate])
 
-  // Primary Dispatcher: Coordinates server requests for Login, Registration, Password Reset, and Password Update.
+  // Primary Dispatcher: Coordinates backend server requests for Login, Registration, Password Reset, and Password Update.
   const handleAuthSubmit = useCallback(async ({ mode, name, email, password }) => {
     setIsSubmittingAuth(true)
     setAuthError('')
