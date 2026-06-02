@@ -83,7 +83,7 @@ export default function DashboardView() {
   return (
     <>
       {/* Root IDE layout container */}
-      <div className="animate-dashboard-enter h-screen ...">
+      <div className="animate-dashboard-enter h-screen bg-zinc-50 dark:bg-zinc-950 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-black text-foreground flex flex-col font-sans selection:bg-primary/20 overflow-hidden">
 
         {/* Top navigation toolbar */}
         <Topbar
@@ -144,7 +144,7 @@ export default function DashboardView() {
         />
 
         {/* Main workspace body */}
-        <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className="flex flex-1 overflow-hidden min-h-0" style={{ height: 'calc(100vh - 65px)' }}>
 
           {/* Left project/file explorer */}
           {showProjectSidebar && (
@@ -156,7 +156,7 @@ export default function DashboardView() {
           )}
 
           {/* Central IDE grid layout */}
-          <div className="flex-1 grid ...">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-4 p-4 lg:p-6 overflow-hidden min-h-0 min-w-0 max-h-full">
 
             {/* Monaco code editor */}
             <EditorPanel
@@ -177,7 +177,7 @@ export default function DashboardView() {
             <div className="flex flex-col gap-3 overflow-hidden min-h-0">
 
               {/* Code execution output terminal */}
-              <div className={`transition-all duration-300 ...`}>
+              <div className={`transition-all duration-300 flex flex-col overflow-hidden min-h-0 ${showDebugPanel ? 'flex-1' : 'h-full'}`}>
                 <TerminalPanel
                   output={output}
                   hasError={hasError}
