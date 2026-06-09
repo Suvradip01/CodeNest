@@ -31,10 +31,10 @@ function resolveApiBaseUrl() {
 const BASE = resolveApiBaseUrl()
 const SESSION_KEY = 'codenest-session'
 
-// Main Axios instance configured with a baseline 20-second timeout limit - prevent waiting req forever.
+// Main Axios instance configured with a baseline 60-second timeout limit - prevent waiting req forever.
 export const apiClient = axios.create({
   baseURL: BASE,
-  timeout: 20000,
+  timeout: 60000,
 })
 
 // Checks if the browser's localStorage API is fully active and accessible.
