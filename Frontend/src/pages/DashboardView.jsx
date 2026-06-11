@@ -72,6 +72,7 @@ export default function DashboardView() {
     projectStore,
     versionStore,
     handleFileOpen,
+    handleToggleProjects,
     reviewCode,
     runCode,
     applyPrompt,
@@ -115,7 +116,7 @@ export default function DashboardView() {
 
           // Toggle project sidebar
           showProjectSidebar={showProjectSidebar}
-          onToggleProjects={() => setShowProjectSidebar(current => !current)}
+          onToggleProjects={handleToggleProjects}
 
           // Toggle version history panel
           showVersionPanel={showVersionPanel}

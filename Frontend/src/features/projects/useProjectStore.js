@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   listProjects,
   createProjectApi,
@@ -12,9 +12,15 @@ import {
 // Custom store that syncs candidate project folders and files to database endpoints in real-time.
 export function useProjectStore({ enabled = true } = {}) {
   const [projects, setProjects] = useState([])
-  const [isLoading, setIsLoading] = useState(Boolean(enabled))
+  const [isLoading, setIsLoading] = useState(false)
   const [activeProjectId, setActiveProjectId] = useState(null)
   const [activeFileId, setActiveFileId] = useState(null)
+
+  // Track whether we have done at least one successful fetch
+  const hasFetchedRef = useRef(false)
+  // Stable ref for activeProjectId to avoid useCallback dependency churn
+  const activeProjectIdRef = useRef(activeProjectId)
+  useEffect(() => { activeProjectIdRef.current = activeProjectId }, [activeProjectId])
 
   // Clears all active directory registers and file states from memory upon signing out.
   const reset = useCallback(() => {
@@ -22,6 +28,7 @@ export function useProjectStore({ enabled = true } = {}) {
     setActiveProjectId(null)
     setActiveFileId(null)
     setIsLoading(false)
+    hasFetchedRef.current = false
   }, [])
 
   // Syncs projects list from the server databases and filters out stale indices.
@@ -35,8 +42,10 @@ export function useProjectStore({ enabled = true } = {}) {
     try {
       const data = await listProjects()
       setProjects(data)
+      hasFetchedRef.current = true
 
-      if (activeProjectId && !data.some(project => project.id === activeProjectId)) {
+      const currentActiveId = activeProjectIdRef.current
+      if (currentActiveId && !data.some(project => project.id === currentActiveId)) {
         setActiveProjectId(null)
         setActiveFileId(null)
       }
@@ -48,16 +57,20 @@ export function useProjectStore({ enabled = true } = {}) {
     } finally {
       setIsLoading(false)
     }
-  }, [activeProjectId, enabled, reset])
+  }, [enabled, reset])
 
+  // Fetch projects only on first open (lazy) — avoids hitting the server on page load.
+  const fetchIfNeeded = useCallback(async () => {
+    if (hasFetchedRef.current || !enabled) return
+    return reloadProjects()
+  }, [enabled, reloadProjects])
+
+  // Reset store when auth is disabled (user logged out)
   useEffect(() => {
     if (!enabled) {
       reset()
-      return
     }
-
-    reloadProjects().catch(() => {})
-  }, [enabled, reloadProjects, reset])
+  }, [enabled, reset])
 
   // Submits a new workspace folder request to create a project in the database.
   const createProject = useCallback(async (name) => {
@@ -166,6 +179,7 @@ export function useProjectStore({ enabled = true } = {}) {
     setActiveProjectId,
     setActiveFileId,
     reloadProjects,
+    fetchIfNeeded,
     reset,
     createProject,
     renameProject,

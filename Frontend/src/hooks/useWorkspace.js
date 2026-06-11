@@ -31,6 +31,7 @@ export function useWorkspace() {
   const activeProjectId = projectStore.activeProjectId
   const activeFileId = projectStore.activeFileId
   const updateFileContent = projectStore.updateFileContent
+  const fetchIfNeeded = projectStore.fetchIfNeeded
 
   const [language, setLanguage] = useState('javascript')
   const [code, setCode] = useState(SNIPPETS.javascript)
@@ -116,6 +117,15 @@ export function useWorkspace() {
     setShowDebugPanel(false)
     setFixResult(null)
   }, [])
+
+  // Lazily fetches projects on first sidebar open, then just toggles visibility.
+  const handleToggleProjects = useCallback(async () => {
+    if (!showProjectSidebar) {
+      // Fire-and-forget: fetch data before showing — sidebar renders with spinner if still loading
+      fetchIfNeeded().catch(() => {})
+    }
+    setShowProjectSidebar(current => !current)
+  }, [fetchIfNeeded, showProjectSidebar])
 
   // Invokes AI principal auditor to evaluate active code blocks and return detailed critiques.
   const reviewCode = useCallback(async () => {
@@ -261,6 +271,7 @@ export function useWorkspace() {
     projectStore,
     versionStore,
     handleFileOpen,
+    handleToggleProjects,
     reviewCode,
     runCode,
     applyPrompt,
