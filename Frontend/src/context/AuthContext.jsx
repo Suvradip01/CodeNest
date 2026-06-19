@@ -32,22 +32,18 @@ export function AuthProvider({ children }) {
     let ignore = false
 
     async function bootstrap() {
-      try {
-        await fetchHealth()
-        if (!ignore) {
-          setAuthConfig({
-            loading: false,
-            required: true,
-          })
-        }
-      } catch (error) {
-        console.error('Health check failed:', error)
+      // Fire health check in the background to warm up Render/backend if it's sleeping,
+      // without blocking the frontend UI from rendering/enabling interaction immediately.
+      fetchHealth().catch((error) => {
+        console.error('Background health check failed:', error)
+      })
+
+      if (!initialSession.current?.token) {
         if (!ignore) {
           setAuthConfig({ loading: false, required: true })
         }
+        return
       }
-
-      if (!initialSession.current?.token) return
 
       try {
         const user = await getCurrentUserApi()
@@ -64,6 +60,10 @@ export function AuthProvider({ children }) {
         clearStoredSession()
         if (!ignore) {
           setSession(null)
+        }
+      } finally {
+        if (!ignore) {
+          setAuthConfig({ loading: false, required: true })
         }
       }
     }
