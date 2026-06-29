@@ -153,9 +153,15 @@ async function loginUser({ email, password }) {
   // Load user profile
   const user = await User.findOne({ email: normalizedEmail });
 
+  if (!user) {
+    const err = new Error('User does not exist. Please sign up first.');
+    err.statusCode = 404;
+    throw err;
+  }
+
   // Verify stored credentials match
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    const err = new Error('Invalid email or password');
+  if (!(await verifyPassword(password, user.passwordHash))) {
+    const err = new Error('Incorrect password.');
     err.statusCode = 401;
     throw err;
   }
