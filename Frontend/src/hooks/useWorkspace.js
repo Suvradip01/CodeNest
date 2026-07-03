@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useAuth } from '../features/auth/hooks/useAuth'
-import { useProjectStore } from '../features/projects/useProjectStore'
-import { useVersionStore } from '../features/versioning/useVersionStore'
+import { useAuthStore } from '../store/useAuthStore'
+import { useProjectStore } from '../store/useProjectStore'
+import { useVersionStore } from '../store/useVersionStore'
 import {
   editCode,
   getReview,
@@ -21,18 +21,40 @@ export const SNIPPETS = {
 
 // Central controller managing active document code status, compilation, debugging, and AI assistants.
 export function useWorkspace() {
-  const { session } = useAuth()
+  // ── Global Zustand stores (singleton — no re-instantiation on mount) ──────
+  const session = useAuthStore((s) => s.session)
   const workspaceEnabled = Boolean(session?.token)
 
-  const projectStore = useProjectStore({ enabled: workspaceEnabled })
-  const versionStore = useVersionStore()
+  // Project store — read active IDs and actions from the global store
+  const projects = useProjectStore((s) => s.projects)
+  const activeProjectId = useProjectStore((s) => s.activeProjectId)
+  const activeFileId = useProjectStore((s) => s.activeFileId)
+  const isLoading = useProjectStore((s) => s.isLoading)
+  const setActiveProjectId = useProjectStore((s) => s.setActiveProjectId)
+  const setActiveFileId = useProjectStore((s) => s.setActiveFileId)
+  const reloadProjects = useProjectStore((s) => s.reloadProjects)
+  const fetchIfNeeded = useProjectStore((s) => s.fetchIfNeeded)
+  const resetProjects = useProjectStore((s) => s.reset)
+  const createProject = useProjectStore((s) => s.createProject)
+  const renameProject = useProjectStore((s) => s.renameProject)
+  const deleteProject = useProjectStore((s) => s.deleteProject)
+  const createFile = useProjectStore((s) => s.createFile)
+  const renameFile = useProjectStore((s) => s.renameFile)
+  const deleteFile = useProjectStore((s) => s.deleteFile)
+  const updateFileContent = useProjectStore((s) => s.updateFileContent)
 
-  const activeFile = projectStore.activeFile
-  const activeProjectId = projectStore.activeProjectId
-  const activeFileId = projectStore.activeFileId
-  const updateFileContent = projectStore.updateFileContent
-  const fetchIfNeeded = projectStore.fetchIfNeeded
+  // Derive active project and file from store state
+  const activeProject = projects.find((p) => p.id === activeProjectId) ?? null
+  const activeFile = activeProject?.files.find((f) => f.id === activeFileId) ?? null
 
+  // Version store — global singleton
+  const saveSnapshot = useVersionStore((s) => s.saveSnapshot)
+  const deleteSnapshot = useVersionStore((s) => s.deleteSnapshot)
+  const clearAllSnapshots = useVersionStore((s) => s.clearAll)
+  const labelSnapshot = useVersionStore((s) => s.labelSnapshot)
+  const versions = useVersionStore((s) => s.versions)
+
+  // ── Local UI state ────────────────────────────────────────────────────────
   const [language, setLanguage] = useState('javascript')
   const [code, setCode] = useState(SNIPPETS.javascript)
   const [review, setReview] = useState('')
@@ -55,6 +77,13 @@ export function useWorkspace() {
   const saveDebounceRef = useRef(null)
   const lastSavedCode = useRef(code)
   const isSaving = useRef(false)
+
+  // Reset project store whenever the user logs out (workspaceEnabled goes false)
+  useEffect(() => {
+    if (!workspaceEnabled) {
+      resetProjects()
+    }
+  }, [workspaceEnabled, resetProjects])
 
   // Live Hints Check Effect: scans active code dynamically 2 seconds after keypress events halt.
   useEffect(() => {
@@ -124,12 +153,12 @@ export function useWorkspace() {
       // Fire-and-forget: fetch data before showing — sidebar renders with spinner if still loading
       fetchIfNeeded().catch(() => {})
     }
-    setShowProjectSidebar(current => !current)
+    setShowProjectSidebar((current) => !current)
   }, [fetchIfNeeded, showProjectSidebar])
 
   // Invokes AI principal auditor to evaluate active code blocks and return detailed critiques.
   const reviewCode = useCallback(async () => {
-    versionStore.saveSnapshot(code, language, 'Before review')
+    saveSnapshot(code, language, 'Before review')
     try {
       const data = await getReview(code)
       setReview(data)
@@ -137,11 +166,11 @@ export function useWorkspace() {
       const { status, message } = getApiErrorMessage(error)
       setReview(`## Review unavailable\n\n**Status:** ${status}\n\n${message}`)
     }
-  }, [code, language, versionStore])
+  }, [code, language, saveSnapshot])
 
   // Saves current code state to active timeline registers and starts compilation triggers.
   const runCode = useCallback(async () => {
-    versionStore.saveSnapshot(code, language)
+    saveSnapshot(code, language)
 
     try {
       const result = await runCodeApi(code, language)
@@ -151,12 +180,12 @@ export function useWorkspace() {
       setOutput(lines)
       const errDetected = stderr.length > 0 || detectErrors(lines)
       setHasError(errDetected)
-      setStderrLines(stderr.length > 0 ? stderr : lines.filter(line => detectErrors([line])))
+      setStderrLines(stderr.length > 0 ? stderr : lines.filter((line) => detectErrors([line])))
       setShowDebugPanel(false)
       setFixResult(null)
 
       if (result.exitCode !== undefined && result.exitCode !== 0) {
-        versionStore.saveSnapshot(code, language, `Run failed (exit ${result.exitCode})`)
+        saveSnapshot(code, language, `Run failed (exit ${result.exitCode})`)
       }
     } catch (error) {
       const { status, message } = getApiErrorMessage(error, 'Execution failed')
@@ -164,7 +193,7 @@ export function useWorkspace() {
       setHasError(true)
       setStderrLines([message])
     }
-  }, [code, language, versionStore])
+  }, [code, language, saveSnapshot])
 
   // Interprets natural-language prompt instructions to update active editor code models.
   const applyPrompt = useCallback(async () => {
@@ -190,7 +219,7 @@ export function useWorkspace() {
       setFixResult(result)
 
       if (result.fixedCode) {
-        versionStore.saveSnapshot(code, language, 'Before AI fix')
+        saveSnapshot(code, language, 'Before AI fix')
         setCode(result.fixedCode)
         setHasError(false)
         setOutput([])
@@ -205,7 +234,7 @@ export function useWorkspace() {
     } finally {
       setIsFixing(false)
     }
-  }, [code, hasError, language, output, stderrLines, versionStore])
+  }, [code, hasError, language, output, stderrLines, saveSnapshot])
 
   // Queries AI engine to compile dynamic Mermaid flowchart diagrams based on code statement trees.
   const handleVisualize = useCallback(async () => {
@@ -225,13 +254,38 @@ export function useWorkspace() {
 
   // Resets active code text to a previous local memory snapshot from the history list.
   const handleRestore = useCallback((snapshotCode, snapshotLanguage) => {
-    versionStore.saveSnapshot(code, language, 'Before restore')
+    saveSnapshot(code, language, 'Before restore')
     setCode(snapshotCode)
     setLanguage(snapshotLanguage)
     setOutput([])
     setHasError(false)
     setShowVersionPanel(false)
-  }, [code, language, versionStore])
+  }, [code, language, saveSnapshot])
+
+  // Compose a versionStore-compatible object for backwards compat with child components
+  const versionStore = { versions, saveSnapshot, deleteSnapshot, clearAll: clearAllSnapshots, labelSnapshot }
+
+  // Compose a projectStore-compatible object for backwards compat with child components
+  const projectStore = {
+    projects,
+    activeProject,
+    activeFile,
+    activeProjectId,
+    activeFileId,
+    isLoading,
+    setActiveProjectId,
+    setActiveFileId,
+    reloadProjects,
+    fetchIfNeeded,
+    reset: resetProjects,
+    createProject,
+    renameProject,
+    deleteProject,
+    createFile,
+    renameFile,
+    deleteFile,
+    updateFileContent,
+  }
 
   return {
     language,

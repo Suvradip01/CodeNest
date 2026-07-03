@@ -33,9 +33,12 @@ export default function DashboardView() {
     authError,
     isSubmittingAuth,
     openAuth,
-    handleAuthSubmit,
-    handleLogout,
+    handleAuthSubmit: handleAuthSubmitAction,
+    handleLogout: handleLogoutAction,
   } = useAuth()
+
+  const handleLogout = () => handleLogoutAction(navigate)
+  const handleAuthSubmit = (payload) => handleAuthSubmitAction({ ...payload, navigate, currentPath: '/' })
 
   // Central workspace/business logic controller.
   // Handles editor state, AI actions, terminal output, projects, versions, etc.

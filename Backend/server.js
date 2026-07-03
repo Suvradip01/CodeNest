@@ -33,10 +33,16 @@ if (cluster.isPrimary) {
 
 } else {
     // Worker process — run the Express app
+    const connectDB = require('./src/db/db');
     const app = require('./src/app');
 
-    app.listen(PORT, () => {
-        console.log(`[Worker ${process.pid}] Server listening on port ${PORT}`);
+    // Ensure database connection is established before listening to requests
+    connectDB().then(() => {
+        app.listen(PORT, () => {
+            console.log(`[Worker ${process.pid}] Server listening on port ${PORT}`);
+        });
+    }).catch(err => {
+        console.error('Failed to connect to database on startup:', err);
+        process.exit(1);
     });
 }
-

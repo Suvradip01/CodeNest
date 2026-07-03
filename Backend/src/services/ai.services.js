@@ -2,53 +2,38 @@
 // live linting, version diffing, debug fixing, and visual execution diagrams.
 const Groq = require("groq-sdk")
 const crypto = require("crypto")
+const { cacheGet, cacheSet } = require('../cache/redis')
 
 // Initialize client using API key from environment
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 // Model to use
 const MODEL_ID = "llama-3.3-70b-versatile"
-const AI_CACHE_TTL_MS = Number(process.env.AI_CACHE_TTL_MS || 5 * 60 * 1000)
-const AI_CACHE_MAX_ENTRIES = Number(process.env.AI_CACHE_MAX_ENTRIES || 200)
-const aiCache = new Map()
+// TTL for AI response cache in seconds (default: 5 minutes)
+const AI_CACHE_TTL_SECONDS = Math.ceil(Number(process.env.AI_CACHE_TTL_MS || 5 * 60 * 1000) / 1000)
 
 function getCacheKey(namespace, payload) {
-  return `${namespace}:${crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`
+  return `ai:${namespace}:${crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`
 }
 
-function pruneExpiredCacheEntries(now = Date.now()) {
-  for (const [key, entry] of aiCache.entries()) {
-    if (entry.expiresAt <= now) aiCache.delete(key)
-  }
-}
-
-function setCachedValue(key, value) {
-  pruneExpiredCacheEntries()
-  aiCache.set(key, { value, expiresAt: Date.now() + AI_CACHE_TTL_MS })
-
-  while (aiCache.size > AI_CACHE_MAX_ENTRIES) {
-    const firstKey = aiCache.keys().next().value
-    aiCache.delete(firstKey)
-  }
-}
-
-function getCachedValue(key) {
-  const entry = aiCache.get(key)
-  if (!entry) return null
-  if (entry.expiresAt <= Date.now()) {
-    aiCache.delete(key)
-    return null
-  }
-  return entry.value
-}
-
+/**
+ * Redis-backed cache wrapper.
+ * On cache HIT: returns cached value immediately.
+ * On cache MISS: runs operation(), stores result in Redis with TTL, returns result.
+ * If Redis is unavailable (cacheGet/cacheSet are no-ops), falls through to operation() every time.
+ */
 async function withCache(namespace, payload, operation) {
   const key = getCacheKey(namespace, payload)
-  const cached = getCachedValue(key)
-  if (cached !== null) return cached
 
+  const cached = await cacheGet(key)
+  if (cached !== null) {
+    console.log(`[AI Cache] HIT ${namespace}`)
+    return cached
+  }
+
+  console.log(`[AI Cache] MISS ${namespace} — running AI call`)
   const result = await operation()
-  setCachedValue(key, result)
+  await cacheSet(key, result, AI_CACHE_TTL_SECONDS)
   return result
 }
 

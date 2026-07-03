@@ -3,9 +3,12 @@ import Desktop from '../components/common/Desktop'
 import AuthDialog from '../features/auth/components/AuthDialog'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { AUTH_REQUIRED } from '../config/constants'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 // Screen page component rendering the macOS desktop container and active background launcher.
 export default function DesktopView() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const {
     isAuthOpen,
     setIsAuthOpen,
@@ -13,10 +16,14 @@ export default function DesktopView() {
     setAuthMode,
     authError,
     isSubmittingAuth,
-    handleLaunchEditor,
-    handleAuthSubmit,
-    handleLogout,
+    handleLaunchEditor: handleLaunchEditorAction,
+    handleAuthSubmit: handleAuthSubmitAction,
+    handleLogout: handleLogoutAction,
   } = useAuth()
+
+  const handleLaunchEditor = () => handleLaunchEditorAction(navigate)
+  const handleLogout = () => handleLogoutAction(navigate)
+  const handleAuthSubmit = (payload) => handleAuthSubmitAction({ ...payload, navigate, currentPath: location.pathname })
 
   // Track if we just closed VSCode to trigger the zoom down animation
   const [isClosingVSCode, setIsClosingVSCode] = useState(

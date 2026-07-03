@@ -201,12 +201,23 @@ export default function ReviewPanel({ review, mermaidDiagram, isVisualizing }) {
         <div className="p-6 card-scroll-container custom-scrollbar">
           {review ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <div className="prose prose-sm max-w-none
-                prose-p:text-muted-foreground prose-p:leading-relaxed
-                prose-headings:text-foreground
-                prose-strong:text-purple-600 dark:prose-strong:text-purple-400
-                prose-code:text-purple-600 dark:prose-code:text-purple-300 prose-code:bg-purple-100 dark:prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:rounded
-                prose-pre:bg-muted dark:prose-pre:bg-black/40 prose-pre:border prose-pre:border-border">
+              <div className="prose prose-sm max-w-none dark:prose-invert
+                white-space-pre-wrap break-words
+                prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-4
+                prose-headings:text-foreground prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3
+                prose-h2:text-lg prose-h2:border-b prose-h2:border-border prose-h2:pb-1 prose-h2:text-purple-600 dark:prose-h2:text-purple-400
+                prose-strong:text-purple-600 dark:prose-strong:text-purple-400 prose-strong:font-semibold
+                prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-4 prose-ul:space-y-1
+                prose-li:text-muted-foreground
+                prose-code:text-purple-600 dark:prose-code:text-purple-300 prose-code:bg-purple-100 dark:prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+                prose-pre:bg-muted dark:prose-pre:bg-black/40 prose-pre:border prose-pre:border-border prose-pre:p-4 prose-pre:rounded-xl">
+                <style>{`
+                  .prose h2 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; }
+                  .prose p { margin-bottom: 1rem; line-height: 1.6; }
+                  .prose ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 1rem; }
+                  .prose li { margin-bottom: 0.25rem; }
+                  .prose strong { font-weight: 700; }
+                `}</style>
                 <Markdown rehypePlugins={[rehypeHighlight]}>{review}</Markdown>
               </div>
             </div>

@@ -18,8 +18,10 @@ const { requireAuthIfConfigured, isAuthRequired } = require('./middleware/auth')
 const { projectLimiter } = require('./middleware/rateLimiter');
 const { requestLogger } = require('./middleware/logger');
 
-// Initialize database
-connectDB();
+// Initialize database (only for testing environments where server.js might not be the entry point)
+if (process.env.NODE_ENV === 'test') {
+    connectDB();
+}
 
 if (isAuthRequired() && !process.env.JWT_SECRET) {
     console.warn('JWT_SECRET is not set. Falling back to the development signing secret.');

@@ -1,11 +1,7 @@
-import { useContext } from 'react'
-import { AuthContext } from '../../../context/AuthContext'
-
-// Custom hook shortcut to easily consume the global authentication context inside components.
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+/**
+ * useAuth — thin re-export of the global Zustand auth store.
+ *
+ * Drop-in replacement for the old context-based useAuth.
+ * Components no longer need to be wrapped in AuthProvider.
+ */
+export { useAuthStore as useAuth } from '../../../store/useAuthStore'

@@ -4,9 +4,12 @@ import AuthDialog from '../features/auth/components/AuthDialog'
 import { useAuth } from '../features/auth/hooks/useAuth'
 import { AUTH_REQUIRED } from '../config/constants'
 import Lenis from 'lenis'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 // Entry point component that aggregates the presentation LandingPage container with security AuthDialog modals.
 export default function Landing() {
+  const navigate = useNavigate()
+  const location = useLocation()
   // Initialize Lenis smooth scroll specifically on the Landing marketing page
   useEffect(() => {
     const lenis = new Lenis({
@@ -36,9 +39,12 @@ export default function Landing() {
     authError,
     isSubmittingAuth,
     openAuth,
-    handleLaunchWorkspace,
-    handleAuthSubmit,
+    handleLaunchWorkspace: handleLaunchWorkspaceAction,
+    handleAuthSubmit: handleAuthSubmitAction,
   } = useAuth()
+
+  const handleLaunchWorkspace = () => handleLaunchWorkspaceAction(navigate)
+  const handleAuthSubmit = (payload) => handleAuthSubmitAction({ ...payload, navigate, currentPath: location.pathname })
 
 
   return (
