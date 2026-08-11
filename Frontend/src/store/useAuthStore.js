@@ -71,18 +71,21 @@ export const useAuthStore = create((set, get) => ({
       return
     }
 
-    try {
-      const user = await getCurrentUserApi()
-      const hydratedSession = { ...initialSession, user }
-      persistSession(hydratedSession)
-      set({ session: hydratedSession })
-    } catch (error) {
-      console.error('Session restore failed:', error)
-      clearStoredSession()
-      set({ session: null })
-    } finally {
-      set({ authConfig: { loading: false, required: true } })
-    }
+    // Immediately set loading to false so logged-in users can proceed without waiting
+    set({ authConfig: { loading: false, required: true } })
+
+    // Hydrate user data in the background (fire-and-forget)
+    getCurrentUserApi()
+      .then((user) => {
+        const hydratedSession = { ...initialSession, user }
+        persistSession(hydratedSession)
+        set({ session: hydratedSession })
+      })
+      .catch((error) => {
+        console.error('Session restore failed:', error)
+        clearStoredSession()
+        set({ session: null })
+      })
 
     // Handle password-reset flow from URL token
     const params = new URLSearchParams(window.location.search)

@@ -61,7 +61,9 @@ exports.resetPassword = async (req, res) => {
       try {
         await sendPasswordResetEmail(email, resetLink);
       } catch (emailError) {
-        // Errors are logged in the service layer, but we catch them here so it doesn't crash the request
+        // Log detailed error for debugging while still returning success to user (security)
+        console.error('[EMAIL ERROR] Failed to send password reset email:', emailError.message);
+        console.error('[EMAIL ERROR] Full error:', emailError);
       }
     } else {
       // Simulate delay for consistent response time (anti-enumeration)
